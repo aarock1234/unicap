@@ -20,11 +20,11 @@ import (
 )
 
 func main() {
-	// apiKey := os.Getenv("CAPSOLVER_API_KEY")
-	// if apiKey == "" {
-	// 	log.Fatal("CAPSOLVER_API_KEY environment variable is required")
-	// }
-	apiKey := "CAP-B8096F9442CC41907743A86FF4FDAE8B"
+	apiKey := os.Getenv("CAPSOLVER_API_KEY")
+	if apiKey == "" {
+		slog.Error("CAPSOLVER_API_KEY environment variable is required")
+		os.Exit(1)
+	}
 
 	provider, err := capsolver.NewCapSolverProvider(apiKey)
 	if err != nil {
