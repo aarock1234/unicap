@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/aarock1234/unicap/pkg/upicap"
+	"github.com/aarock1234/unicap/pkg/unicap"
 )
 
 // NumericMode specifies character type constraints for image recognition
@@ -34,8 +34,8 @@ type ImageToTextTask struct {
 	LanguagePool    string
 }
 
-func (t *ImageToTextTask) Type() upicap.TaskType {
-	return upicap.TaskTypeImageToText
+func (t *ImageToTextTask) Type() unicap.TaskType {
+	return unicap.TaskTypeImageToText
 }
 
 func (t *ImageToTextTask) MarshalJSON() ([]byte, error) {
@@ -45,7 +45,7 @@ func (t *ImageToTextTask) MarshalJSON() ([]byte, error) {
 // Validate ensures required fields are present
 func (t *ImageToTextTask) Validate() error {
 	if t.Body == "" {
-		return fmt.Errorf("body: %w", upicap.ErrInvalidTask)
+		return fmt.Errorf("body: %w", unicap.ErrInvalidTask)
 	}
 	return nil
 }

@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/aarock1234/unicap/pkg/upicap"
+	"github.com/aarock1234/unicap/pkg/unicap"
 )
 
 // CloudflareChallengeTask represents a Cloudflare Challenge solving task
@@ -13,11 +13,11 @@ type CloudflareChallengeTask struct {
 	WebsiteURL string
 	HTML       string
 	UserAgent  string
-	Proxy      *upicap.Proxy
+	Proxy      *unicap.Proxy
 }
 
-func (t *CloudflareChallengeTask) Type() upicap.TaskType {
-	return upicap.TaskTypeCloudflareChallenge
+func (t *CloudflareChallengeTask) Type() unicap.TaskType {
+	return unicap.TaskTypeCloudflareChallenge
 }
 
 func (t *CloudflareChallengeTask) MarshalJSON() ([]byte, error) {
@@ -27,10 +27,10 @@ func (t *CloudflareChallengeTask) MarshalJSON() ([]byte, error) {
 // Validate ensures required fields are present
 func (t *CloudflareChallengeTask) Validate() error {
 	if t.WebsiteURL == "" {
-		return fmt.Errorf("website_url: %w", upicap.ErrInvalidTask)
+		return fmt.Errorf("website_url: %w", unicap.ErrInvalidTask)
 	}
 	if !t.Proxy.IsSet() {
-		return fmt.Errorf("proxy is required for cloudflare challenge: %w", upicap.ErrInvalidTask)
+		return fmt.Errorf("proxy is required for cloudflare challenge: %w", unicap.ErrInvalidTask)
 	}
 	return nil
 }

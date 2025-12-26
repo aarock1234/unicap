@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/aarock1234/unicap/pkg/upicap"
+	"github.com/aarock1234/unicap/pkg/unicap"
 )
 
 // DataDomeTask represents a DataDome slider captcha solving task
@@ -12,11 +12,11 @@ type DataDomeTask struct {
 	WebsiteURL string
 	CaptchaURL string
 	UserAgent  string
-	Proxy      *upicap.Proxy
+	Proxy      *unicap.Proxy
 }
 
-func (t *DataDomeTask) Type() upicap.TaskType {
-	return upicap.TaskTypeDataDome
+func (t *DataDomeTask) Type() unicap.TaskType {
+	return unicap.TaskTypeDataDome
 }
 
 func (t *DataDomeTask) MarshalJSON() ([]byte, error) {
@@ -26,13 +26,13 @@ func (t *DataDomeTask) MarshalJSON() ([]byte, error) {
 // Validate ensures required fields are present
 func (t *DataDomeTask) Validate() error {
 	if t.CaptchaURL == "" {
-		return fmt.Errorf("captcha_url: %w", upicap.ErrInvalidTask)
+		return fmt.Errorf("captcha_url: %w", unicap.ErrInvalidTask)
 	}
 	if t.UserAgent == "" {
-		return fmt.Errorf("user_agent: %w", upicap.ErrInvalidTask)
+		return fmt.Errorf("user_agent: %w", unicap.ErrInvalidTask)
 	}
 	if !t.Proxy.IsSet() {
-		return fmt.Errorf("proxy is required for datadome: %w", upicap.ErrInvalidTask)
+		return fmt.Errorf("proxy is required for datadome: %w", unicap.ErrInvalidTask)
 	}
 	return nil
 }

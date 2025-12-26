@@ -8,14 +8,14 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/aarock1234/unicap/pkg/upicap"
+	"github.com/aarock1234/unicap/pkg/unicap"
 )
 
 // twocaptchaClient implements the Provider interface
 type twocaptchaClient struct {
 	apiKey string
-	client *upicap.BaseHTTPClient
-	errors *upicap.ErrorMapper
+	client *unicap.BaseHTTPClient
+	errors *unicap.ErrorMapper
 }
 
 // ProviderOption configures a provider
@@ -43,19 +43,19 @@ func WithLogger(logger *slog.Logger) ProviderOption {
 }
 
 // NewTwoCaptchaProvider creates a 2Captcha provider
-func NewTwoCaptchaProvider(apiKey string, opts ...ProviderOption) (upicap.Provider, error) {
+func NewTwoCaptchaProvider(apiKey string, opts ...ProviderOption) (unicap.Provider, error) {
 	if apiKey == "" {
-		return nil, fmt.Errorf("api key: %w", upicap.ErrInvalidAPIKey)
+		return nil, fmt.Errorf("api key: %w", unicap.ErrInvalidAPIKey)
 	}
 
 	c := &twocaptchaClient{
 		apiKey: apiKey,
-		client: &upicap.BaseHTTPClient{
+		client: &unicap.BaseHTTPClient{
 			HTTPClient: &http.Client{Timeout: 30 * time.Second},
 			Logger:     slog.New(slog.NewTextHandler(io.Discard, nil)),
 			BaseURL:    "https://api.2captcha.com",
 		},
-		errors: upicap.StandardErrorMapper(
+		errors: unicap.StandardErrorMapper(
 			"2captcha",
 			[]string{"ERROR_KEY_DOES_NOT_EXIST", "ERROR_WRONG_USER_KEY"},
 			[]string{"ERROR_ZERO_BALANCE"},
@@ -71,7 +71,7 @@ func NewTwoCaptchaProvider(apiKey string, opts ...ProviderOption) (upicap.Provid
 	return c, nil
 }
 
-func (c *twocaptchaClient) CreateTask(ctx context.Context, task upicap.Task) (string, error) {
+func (c *twocaptchaClient) CreateTask(ctx context.Context, task unicap.Task) (string, error) {
 	twocaptchaTask, err := mapToTwoCaptchaTask(task)
 	if err != nil {
 		return "", fmt.Errorf("mapping task: %w", err)
@@ -99,7 +99,7 @@ func (c *twocaptchaClient) CreateTask(ctx context.Context, task upicap.Task) (st
 	return resp.TaskID, nil
 }
 
-func (c *twocaptchaClient) GetTaskResult(ctx context.Context, taskID string) (*upicap.TaskResult, error) {
+func (c *twocaptchaClient) GetTaskResult(ctx context.Context, taskID string) (*unicap.TaskResult, error) {
 	req := getTaskResultRequest{
 		ClientKey: c.apiKey,
 		TaskID:    taskID,
@@ -111,9 +111,9 @@ func (c *twocaptchaClient) GetTaskResult(ctx context.Context, taskID string) (*u
 	}
 
 	if resp.ErrorID != 0 {
-		return &upicap.TaskResult{
-			Status: upicap.TaskStatusFailed,
-			Error: &upicap.Error{
+		return &unicap.TaskResult{
+			Status: unicap.TaskStatusFailed,
+			Error: &unicap.Error{
 				Code:     resp.ErrorCode,
 				Message:  resp.ErrorDescription,
 				Provider: "2captcha",
@@ -121,7 +121,7 @@ func (c *twocaptchaClient) GetTaskResult(ctx context.Context, taskID string) (*u
 		}, nil
 	}
 
-	return &upicap.TaskResult{
+	return &unicap.TaskResult{
 		Status:   mapStatus(resp.Status),
 		Solution: mapSolution(resp.Solution),
 	}, nil
@@ -131,19 +131,19 @@ func (c *twocaptchaClient) Name() string {
 	return "2captcha"
 }
 
-func mapStatus(status string) upicap.TaskStatus {
+func mapStatus(status string) unicap.TaskStatus {
 	switch status {
 	case "processing":
-		return upicap.TaskStatusProcessing
+		return unicap.TaskStatusProcessing
 	case "ready":
-		return upicap.TaskStatusReady
+		return unicap.TaskStatusReady
 	default:
-		return upicap.TaskStatusPending
+		return unicap.TaskStatusPending
 	}
 }
 
-func mapSolution(solution map[string]any) upicap.Solution {
-	sol := upicap.Solution{
+func mapSolution(solution map[string]any) unicap.Solution {
+	sol := unicap.Solution{
 		Extra: solution,
 	}
 

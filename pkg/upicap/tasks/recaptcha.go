@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/aarock1234/unicap/pkg/upicap"
+	"github.com/aarock1234/unicap/pkg/unicap"
 )
 
 // ReCaptchaV2Task represents a ReCaptcha V2 solving task
@@ -19,11 +19,11 @@ type ReCaptchaV2Task struct {
 	APIDomain         string
 	UserAgent         string
 	Cookies           string
-	Proxy             *upicap.Proxy
+	Proxy             *unicap.Proxy
 }
 
-func (t *ReCaptchaV2Task) Type() upicap.TaskType {
-	return upicap.TaskTypeReCaptchaV2
+func (t *ReCaptchaV2Task) Type() unicap.TaskType {
+	return unicap.TaskTypeReCaptchaV2
 }
 
 func (t *ReCaptchaV2Task) MarshalJSON() ([]byte, error) {
@@ -33,10 +33,10 @@ func (t *ReCaptchaV2Task) MarshalJSON() ([]byte, error) {
 // Validate ensures required fields are present
 func (t *ReCaptchaV2Task) Validate() error {
 	if t.WebsiteURL == "" {
-		return fmt.Errorf("website_url: %w", upicap.ErrInvalidTask)
+		return fmt.Errorf("website_url: %w", unicap.ErrInvalidTask)
 	}
 	if t.WebsiteKey == "" {
-		return fmt.Errorf("website_key: %w", upicap.ErrInvalidTask)
+		return fmt.Errorf("website_key: %w", unicap.ErrInvalidTask)
 	}
 	return nil
 }
@@ -51,11 +51,11 @@ type ReCaptchaV3Task struct {
 	IsSession         bool
 	APIDomain         string
 	IsEnterprise      bool
-	Proxy             *upicap.Proxy
+	Proxy             *unicap.Proxy
 }
 
-func (t *ReCaptchaV3Task) Type() upicap.TaskType {
-	return upicap.TaskTypeReCaptchaV3
+func (t *ReCaptchaV3Task) Type() unicap.TaskType {
+	return unicap.TaskTypeReCaptchaV3
 }
 
 func (t *ReCaptchaV3Task) MarshalJSON() ([]byte, error) {
@@ -65,13 +65,13 @@ func (t *ReCaptchaV3Task) MarshalJSON() ([]byte, error) {
 // Validate ensures required fields are present
 func (t *ReCaptchaV3Task) Validate() error {
 	if t.WebsiteURL == "" {
-		return fmt.Errorf("website_url: %w", upicap.ErrInvalidTask)
+		return fmt.Errorf("website_url: %w", unicap.ErrInvalidTask)
 	}
 	if t.WebsiteKey == "" {
-		return fmt.Errorf("website_key: %w", upicap.ErrInvalidTask)
+		return fmt.Errorf("website_key: %w", unicap.ErrInvalidTask)
 	}
 	if t.MinScore < 0 || t.MinScore > 1 {
-		return fmt.Errorf("min_score must be between 0 and 1: %w", upicap.ErrInvalidTask)
+		return fmt.Errorf("min_score must be between 0 and 1: %w", unicap.ErrInvalidTask)
 	}
 	return nil
 }
@@ -86,11 +86,11 @@ type ReCaptchaV2EnterpriseTask struct {
 	EnterprisePayload map[string]any
 	IsSession         bool
 	APIDomain         string
-	Proxy             *upicap.Proxy
+	Proxy             *unicap.Proxy
 }
 
-func (t *ReCaptchaV2EnterpriseTask) Type() upicap.TaskType {
-	return upicap.TaskTypeReCaptchaV2Enterprise
+func (t *ReCaptchaV2EnterpriseTask) Type() unicap.TaskType {
+	return unicap.TaskTypeReCaptchaV2Enterprise
 }
 
 func (t *ReCaptchaV2EnterpriseTask) MarshalJSON() ([]byte, error) {
@@ -100,10 +100,10 @@ func (t *ReCaptchaV2EnterpriseTask) MarshalJSON() ([]byte, error) {
 // Validate ensures required fields are present
 func (t *ReCaptchaV2EnterpriseTask) Validate() error {
 	if t.WebsiteURL == "" {
-		return fmt.Errorf("website_url: %w", upicap.ErrInvalidTask)
+		return fmt.Errorf("website_url: %w", unicap.ErrInvalidTask)
 	}
 	if t.WebsiteKey == "" {
-		return fmt.Errorf("website_key: %w", upicap.ErrInvalidTask)
+		return fmt.Errorf("website_key: %w", unicap.ErrInvalidTask)
 	}
 	return nil
 }
@@ -117,11 +117,11 @@ type ReCaptchaV3EnterpriseTask struct {
 	EnterprisePayload map[string]any
 	IsSession         bool
 	APIDomain         string
-	Proxy             *upicap.Proxy
+	Proxy             *unicap.Proxy
 }
 
-func (t *ReCaptchaV3EnterpriseTask) Type() upicap.TaskType {
-	return upicap.TaskTypeReCaptchaV3Enterprise
+func (t *ReCaptchaV3EnterpriseTask) Type() unicap.TaskType {
+	return unicap.TaskTypeReCaptchaV3Enterprise
 }
 
 func (t *ReCaptchaV3EnterpriseTask) MarshalJSON() ([]byte, error) {
@@ -131,13 +131,13 @@ func (t *ReCaptchaV3EnterpriseTask) MarshalJSON() ([]byte, error) {
 // Validate ensures required fields are present
 func (t *ReCaptchaV3EnterpriseTask) Validate() error {
 	if t.WebsiteURL == "" {
-		return fmt.Errorf("website_url: %w", upicap.ErrInvalidTask)
+		return fmt.Errorf("website_url: %w", unicap.ErrInvalidTask)
 	}
 	if t.WebsiteKey == "" {
-		return fmt.Errorf("website_key: %w", upicap.ErrInvalidTask)
+		return fmt.Errorf("website_key: %w", unicap.ErrInvalidTask)
 	}
 	if t.MinScore < 0 || t.MinScore > 1 {
-		return fmt.Errorf("min_score must be between 0 and 1: %w", upicap.ErrInvalidTask)
+		return fmt.Errorf("min_score must be between 0 and 1: %w", unicap.ErrInvalidTask)
 	}
 	return nil
 }

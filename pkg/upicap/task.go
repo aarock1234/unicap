@@ -1,4 +1,4 @@
-package upicap
+package unicap
 
 // Task represents a captcha solving task
 type Task interface {

@@ -3,8 +3,8 @@ package anticaptcha
 import (
 	"fmt"
 
-	"github.com/aarock1234/unicap/pkg/upicap"
-	"github.com/aarock1234/unicap/pkg/upicap/tasks"
+	"github.com/aarock1234/unicap/pkg/unicap"
+	"github.com/aarock1234/unicap/pkg/unicap/tasks"
 )
 
 // Task types for AntiCaptcha API
@@ -119,7 +119,7 @@ type anticaptchaImageToTextTask struct {
 }
 
 // mapToAntiCaptchaTask converts a universal task to AntiCaptcha format
-func mapToAntiCaptchaTask(task upicap.Task) (any, error) {
+func mapToAntiCaptchaTask(task unicap.Task) (any, error) {
 	switch t := task.(type) {
 	case *tasks.ReCaptchaV2Task:
 		return mapReCaptchaV2(t), nil

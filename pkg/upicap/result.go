@@ -1,4 +1,4 @@
-package upicap
+package unicap
 
 // TaskResult represents the result of a captcha solving task
 type TaskResult struct {

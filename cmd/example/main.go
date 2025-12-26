@@ -13,8 +13,8 @@ import (
 	"time"
 
 	"github.com/aarock1234/unicap/pkg/providers/capsolver"
-	"github.com/aarock1234/unicap/pkg/upicap"
-	"github.com/aarock1234/unicap/pkg/upicap/tasks"
+	"github.com/aarock1234/unicap/pkg/unicap"
+	"github.com/aarock1234/unicap/pkg/unicap/tasks"
 
 	_ "github.com/aarock1234/unicap/internal/logger"
 )
@@ -32,9 +32,9 @@ func main() {
 		os.Exit(1)
 	}
 
-	client, err := upicap.NewClient(
+	client, err := unicap.NewClient(
 		provider,
-		upicap.WithLogger(slog.Default()),
+		unicap.WithLogger(slog.Default()),
 	)
 	if err != nil {
 		slog.Error("failed to create client", slog.Any("error", err))
@@ -45,7 +45,7 @@ func main() {
 	exampleAsynchronous(client)
 }
 
-func exampleSynchronous(client *upicap.Client) {
+func exampleSynchronous(client *unicap.Client) {
 	slog.Info("synchronous api example")
 
 	task := &tasks.ReCaptchaV2Task{
@@ -70,7 +70,7 @@ func exampleSynchronous(client *upicap.Client) {
 	}
 }
 
-func exampleAsynchronous(client *upicap.Client) {
+func exampleAsynchronous(client *unicap.Client) {
 	slog.Info("asynchronous api example")
 
 	task := &tasks.ReCaptchaV3Task{
@@ -99,14 +99,14 @@ func exampleAsynchronous(client *upicap.Client) {
 	}
 
 	switch result.Status {
-	case upicap.TaskStatusReady:
+	case unicap.TaskStatusReady:
 		slog.InfoContext(ctx, "captcha solved", slog.String("token", result.Solution.Token))
 		if err := verifyReCaptchaV3(ctx, result.Solution.Token); err != nil {
 			slog.ErrorContext(ctx, "verification failed", slog.Any("error", err))
 		}
-	case upicap.TaskStatusProcessing:
+	case unicap.TaskStatusProcessing:
 		slog.InfoContext(ctx, "still processing, check again later")
-	case upicap.TaskStatusFailed:
+	case unicap.TaskStatusFailed:
 		slog.ErrorContext(ctx, "task failed", slog.Any("error", result.Error))
 	}
 }

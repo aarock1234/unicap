@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/aarock1234/unicap/pkg/upicap"
+	"github.com/aarock1234/unicap/pkg/unicap"
 )
 
 // FunCaptchaTask represents a FunCaptcha (Arkose Labs) solving task
@@ -14,11 +14,11 @@ type FunCaptchaTask struct {
 	APIJSSubdomain   string
 	Data             string
 	UserAgent        string
-	Proxy            *upicap.Proxy
+	Proxy            *unicap.Proxy
 }
 
-func (t *FunCaptchaTask) Type() upicap.TaskType {
-	return upicap.TaskTypeFunCaptcha
+func (t *FunCaptchaTask) Type() unicap.TaskType {
+	return unicap.TaskTypeFunCaptcha
 }
 
 func (t *FunCaptchaTask) MarshalJSON() ([]byte, error) {
@@ -28,10 +28,10 @@ func (t *FunCaptchaTask) MarshalJSON() ([]byte, error) {
 // Validate ensures required fields are present
 func (t *FunCaptchaTask) Validate() error {
 	if t.WebsiteURL == "" {
-		return fmt.Errorf("website_url: %w", upicap.ErrInvalidTask)
+		return fmt.Errorf("website_url: %w", unicap.ErrInvalidTask)
 	}
 	if t.WebsitePublicKey == "" {
-		return fmt.Errorf("website_public_key: %w", upicap.ErrInvalidTask)
+		return fmt.Errorf("website_public_key: %w", unicap.ErrInvalidTask)
 	}
 	return nil
 }

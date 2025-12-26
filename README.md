@@ -1,4 +1,4 @@
-# upicap
+# unicap
 
 [![Go Reference](https://pkg.go.dev/badge/github.com/aarock1234/unicap.svg)](https://pkg.go.dev/github.com/aarock1234/unicap)
 [![Release](https://img.shields.io/github/v/release/aarock1234/unicap)](https://github.com/aarock1234/unicap/releases)
@@ -20,8 +20,8 @@ import (
     "time"
 
     "github.com/aarock1234/unicap/pkg/providers/capsolver"
-    "github.com/aarock1234/unicap/pkg/upicap"
-    "github.com/aarock1234/unicap/pkg/upicap/tasks"
+    "github.com/aarock1234/unicap/pkg/unicap"
+    "github.com/aarock1234/unicap/pkg/unicap/tasks"
 )
 
 func main() {
@@ -32,7 +32,7 @@ func main() {
     }
 
     // Create a client with the provider
-    client, err := upicap.NewClient(provider)
+    client, err := unicap.NewClient(provider)
     if err != nil {
         log.Fatal(err)
     }
@@ -123,7 +123,7 @@ if err != nil {
     log.Fatal(err)
 }
 
-client, err := upicap.NewClient(provider)
+client, err := unicap.NewClient(provider)
 if err != nil {
     log.Fatal(err)
 }
@@ -161,11 +161,11 @@ if err != nil {
 }
 
 switch result.Status {
-case upicap.TaskStatusReady:
+case unicap.TaskStatusReady:
     fmt.Println(result.Solution.Token)
-case upicap.TaskStatusProcessing:
+case unicap.TaskStatusProcessing:
     fmt.Println("Still processing, check again later")
-case upicap.TaskStatusFailed:
+case unicap.TaskStatusFailed:
     log.Printf("Task failed: %v", result.Error)
 }
 ```
@@ -176,8 +176,8 @@ case upicap.TaskStatusFailed:
 task := &tasks.ReCaptchaV2Task{
     WebsiteURL: "https://example.com",
     WebsiteKey: "6Le-wvkSAAAAAPBMRTvw0Q4Muexq9bi0DJwx_mJ-",
-    Proxy: &upicap.Proxy{
-        Type:     upicap.ProxyTypeHTTP,
+    Proxy: &unicap.Proxy{
+        Type:     unicap.ProxyTypeHTTP,
         Address:  "proxy.example.com",
         Port:     8080,
         Login:    "user",
@@ -189,7 +189,7 @@ task := &tasks.ReCaptchaV2Task{
 ### Multi-Provider Failover
 
 ```go
-providers := []upicap.Provider{}
+providers := []unicap.Provider{}
 
 if p, err := capsolver.NewCapSolverProvider("PRIMARY_KEY"); err == nil {
     providers = append(providers, p)
@@ -199,7 +199,7 @@ if p, err := twocaptcha.NewTwoCaptchaProvider("BACKUP_KEY"); err == nil {
 }
 
 for _, provider := range providers {
-    client, err := upicap.NewClient(provider)
+    client, err := unicap.NewClient(provider)
     if err != nil {
         continue
     }
@@ -345,19 +345,19 @@ Use the built-in helpers:
 ```go
 type customProvider struct {
     apiKey string
-    client *upicap.BaseHTTPClient
-    errors *upicap.ErrorMapper
+    client *unicap.BaseHTTPClient
+    errors *unicap.ErrorMapper
 }
 
-func NewCustomProvider(apiKey string) (upicap.Provider, error) {
+func NewCustomProvider(apiKey string) (unicap.Provider, error) {
     return &customProvider{
         apiKey: apiKey,
-        client: &upicap.BaseHTTPClient{
+        client: &unicap.BaseHTTPClient{
             HTTPClient: &http.Client{Timeout: 30 * time.Second},
             Logger:     slog.New(slog.NewTextHandler(io.Discard, nil)),
             BaseURL:    "https://api.yourservice.com",
         },
-        errors: upicap.StandardErrorMapper(
+        errors: unicap.StandardErrorMapper(
             "yourservice",
             []string{"INVALID_KEY"},
             []string{"NO_FUNDS"},
@@ -367,7 +367,7 @@ func NewCustomProvider(apiKey string) (upicap.Provider, error) {
     }, nil
 }
 
-func (p *customProvider) CreateTask(ctx context.Context, task upicap.Task) (string, error) {
+func (p *customProvider) CreateTask(ctx context.Context, task unicap.Task) (string, error) {
     req := createTaskRequest{APIKey: p.apiKey, Task: mapTask(task)}
     var resp createTaskResponse
 
@@ -394,25 +394,25 @@ logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
     Level: slog.LevelDebug,
 }))
 
-client, _ := upicap.NewClient(
+client, _ := unicap.NewClient(
     provider,
-    upicap.WithLogger(logger),
+    unicap.WithLogger(logger),
 )
 ```
 
 ### Custom Polling
 
 ```go
-poller := upicap.NewPoller(provider, upicap.PollerConfig{
+poller := unicap.NewPoller(provider, unicap.PollerConfig{
     InitialInterval: 1 * time.Second,
     MaxInterval:     10 * time.Second,
     Timeout:         3 * time.Minute,
     Multiplier:      2.0,
 })
 
-client, _ := upicap.NewClient(
+client, _ := unicap.NewClient(
     provider,
-    upicap.WithPoller(poller),
+    unicap.WithPoller(poller),
 )
 ```
 
@@ -422,11 +422,11 @@ client, _ := upicap.NewClient(
 solution, err := client.Solve(ctx, task)
 if err != nil {
     switch {
-    case errors.Is(err, upicap.ErrInvalidAPIKey):
+    case errors.Is(err, unicap.ErrInvalidAPIKey):
         // Handle invalid API key
-    case errors.Is(err, upicap.ErrInsufficientFunds):
+    case errors.Is(err, unicap.ErrInsufficientFunds):
         // Handle low balance
-    case errors.Is(err, upicap.ErrTimeout):
+    case errors.Is(err, unicap.ErrTimeout):
         // Handle timeout
     default:
         // Handle other errors

@@ -3,8 +3,8 @@ package capsolver
 import (
 	"fmt"
 
-	"github.com/aarock1234/unicap/pkg/upicap"
-	"github.com/aarock1234/unicap/pkg/upicap/tasks"
+	"github.com/aarock1234/unicap/pkg/unicap"
+	"github.com/aarock1234/unicap/pkg/unicap/tasks"
 )
 
 // Task types for CapSolver API
@@ -139,7 +139,7 @@ type capsolverImageToTextTask struct {
 }
 
 // mapToCapSolverTask converts a universal task to CapSolver format
-func mapToCapSolverTask(task upicap.Task) (any, error) {
+func mapToCapSolverTask(task unicap.Task) (any, error) {
 	switch t := task.(type) {
 	case *tasks.ReCaptchaV2Task:
 		return mapReCaptchaV2(t), nil

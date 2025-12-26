@@ -8,31 +8,31 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/aarock1234/unicap/pkg/upicap"
-	"github.com/aarock1234/unicap/pkg/upicap/tasks"
+	"github.com/aarock1234/unicap/pkg/unicap"
+	"github.com/aarock1234/unicap/pkg/unicap/tasks"
 )
 
-// customProvider implements the upicap.Provider interface
+// customProvider implements the unicap.Provider interface
 type customProvider struct {
 	apiKey string
-	client *upicap.BaseHTTPClient
-	errors *upicap.ErrorMapper
+	client *unicap.BaseHTTPClient
+	errors *unicap.ErrorMapper
 }
 
 // NewCustomProvider creates a new custom provider
-func NewCustomProvider(apiKey string) (upicap.Provider, error) {
+func NewCustomProvider(apiKey string) (unicap.Provider, error) {
 	if apiKey == "" {
-		return nil, fmt.Errorf("api key: %w", upicap.ErrInvalidAPIKey)
+		return nil, fmt.Errorf("api key: %w", unicap.ErrInvalidAPIKey)
 	}
 
 	return &customProvider{
 		apiKey: apiKey,
-		client: &upicap.BaseHTTPClient{
+		client: &unicap.BaseHTTPClient{
 			HTTPClient: &http.Client{Timeout: 30 * time.Second},
 			Logger:     slog.New(slog.NewTextHandler(io.Discard, nil)),
 			BaseURL:    "https://api.customservice.com",
 		},
-		errors: upicap.StandardErrorMapper(
+		errors: unicap.StandardErrorMapper(
 			"customservice",
 			[]string{"ERROR_INVALID_KEY"},
 			[]string{"ERROR_NO_FUNDS"},
@@ -42,7 +42,7 @@ func NewCustomProvider(apiKey string) (upicap.Provider, error) {
 	}, nil
 }
 
-func (p *customProvider) CreateTask(ctx context.Context, task upicap.Task) (string, error) {
+func (p *customProvider) CreateTask(ctx context.Context, task unicap.Task) (string, error) {
 	customTask, err := mapTask(task)
 	if err != nil {
 		return "", fmt.Errorf("mapping task: %w", err)
@@ -70,7 +70,7 @@ func (p *customProvider) CreateTask(ctx context.Context, task upicap.Task) (stri
 	return resp.TaskID, nil
 }
 
-func (p *customProvider) GetTaskResult(ctx context.Context, taskID string) (*upicap.TaskResult, error) {
+func (p *customProvider) GetTaskResult(ctx context.Context, taskID string) (*unicap.TaskResult, error) {
 	req := getResultRequest{
 		APIKey: p.apiKey,
 		TaskID: taskID,
@@ -82,9 +82,9 @@ func (p *customProvider) GetTaskResult(ctx context.Context, taskID string) (*upi
 	}
 
 	if resp.Error != "" {
-		return &upicap.TaskResult{
-			Status: upicap.TaskStatusFailed,
-			Error: &upicap.Error{
+		return &unicap.TaskResult{
+			Status: unicap.TaskStatusFailed,
+			Error: &unicap.Error{
 				Code:     resp.ErrorCode,
 				Message:  resp.Error,
 				Provider: "customservice",
@@ -93,13 +93,13 @@ func (p *customProvider) GetTaskResult(ctx context.Context, taskID string) (*upi
 	}
 
 	status := mapStatus(resp.Status)
-	solution := upicap.Solution{}
+	solution := unicap.Solution{}
 
-	if status == upicap.TaskStatusReady {
+	if status == unicap.TaskStatusReady {
 		solution.Token = resp.Solution.Token
 	}
 
-	return &upicap.TaskResult{
+	return &unicap.TaskResult{
 		Status:   status,
 		Solution: solution,
 	}, nil
@@ -144,7 +144,7 @@ type customTaskData struct {
 }
 
 // Helper functions
-func mapTask(task upicap.Task) (customTaskData, error) {
+func mapTask(task unicap.Task) (customTaskData, error) {
 	switch t := task.(type) {
 	case *tasks.ReCaptchaV2Task:
 		return customTaskData{
@@ -157,16 +157,16 @@ func mapTask(task upicap.Task) (customTaskData, error) {
 	}
 }
 
-func mapStatus(status string) upicap.TaskStatus {
+func mapStatus(status string) unicap.TaskStatus {
 	switch status {
 	case "processing":
-		return upicap.TaskStatusProcessing
+		return unicap.TaskStatusProcessing
 	case "ready":
-		return upicap.TaskStatusReady
+		return unicap.TaskStatusReady
 	case "failed":
-		return upicap.TaskStatusFailed
+		return unicap.TaskStatusFailed
 	default:
-		return upicap.TaskStatusPending
+		return unicap.TaskStatusPending
 	}
 }
 
@@ -176,7 +176,7 @@ func main() {
 		panic(err)
 	}
 
-	client, err := upicap.NewClient(provider)
+	client, err := unicap.NewClient(provider)
 	if err != nil {
 		panic(err)
 	}

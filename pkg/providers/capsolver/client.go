@@ -8,14 +8,14 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/aarock1234/unicap/pkg/upicap"
+	"github.com/aarock1234/unicap/pkg/unicap"
 )
 
 // capsolverClient implements the Provider interface
 type capsolverClient struct {
 	apiKey string
-	client *upicap.BaseHTTPClient
-	errors *upicap.ErrorMapper
+	client *unicap.BaseHTTPClient
+	errors *unicap.ErrorMapper
 }
 
 // ProviderOption configures a provider
@@ -43,19 +43,19 @@ func WithLogger(logger *slog.Logger) ProviderOption {
 }
 
 // NewCapSolverProvider creates a CapSolver provider
-func NewCapSolverProvider(apiKey string, opts ...ProviderOption) (upicap.Provider, error) {
+func NewCapSolverProvider(apiKey string, opts ...ProviderOption) (unicap.Provider, error) {
 	if apiKey == "" {
-		return nil, fmt.Errorf("api key: %w", upicap.ErrInvalidAPIKey)
+		return nil, fmt.Errorf("api key: %w", unicap.ErrInvalidAPIKey)
 	}
 
 	c := &capsolverClient{
 		apiKey: apiKey,
-		client: &upicap.BaseHTTPClient{
+		client: &unicap.BaseHTTPClient{
 			HTTPClient: &http.Client{Timeout: 30 * time.Second},
 			Logger:     slog.New(slog.NewTextHandler(io.Discard, nil)),
 			BaseURL:    "https://api.capsolver.com",
 		},
-		errors: upicap.StandardErrorMapper(
+		errors: unicap.StandardErrorMapper(
 			"capsolver",
 			[]string{"ERROR_KEY_INVALID", "ERROR_KEY_DOES_NOT_EXIST"},
 			[]string{"ERROR_ZERO_BALANCE", "ERROR_NO_SLOT_AVAILABLE"},
@@ -71,7 +71,7 @@ func NewCapSolverProvider(apiKey string, opts ...ProviderOption) (upicap.Provide
 	return c, nil
 }
 
-func (c *capsolverClient) CreateTask(ctx context.Context, task upicap.Task) (string, error) {
+func (c *capsolverClient) CreateTask(ctx context.Context, task unicap.Task) (string, error) {
 	capsolverTask, err := mapToCapSolverTask(task)
 	if err != nil {
 		return "", fmt.Errorf("mapping task: %w", err)
@@ -99,7 +99,7 @@ func (c *capsolverClient) CreateTask(ctx context.Context, task upicap.Task) (str
 	return resp.TaskID, nil
 }
 
-func (c *capsolverClient) GetTaskResult(ctx context.Context, taskID string) (*upicap.TaskResult, error) {
+func (c *capsolverClient) GetTaskResult(ctx context.Context, taskID string) (*unicap.TaskResult, error) {
 	req := getTaskResultRequest{
 		ClientKey: c.apiKey,
 		TaskID:    taskID,
@@ -111,9 +111,9 @@ func (c *capsolverClient) GetTaskResult(ctx context.Context, taskID string) (*up
 	}
 
 	if resp.ErrorID != 0 {
-		return &upicap.TaskResult{
-			Status: upicap.TaskStatusFailed,
-			Error: &upicap.Error{
+		return &unicap.TaskResult{
+			Status: unicap.TaskStatusFailed,
+			Error: &unicap.Error{
 				Code:     resp.ErrorCode,
 				Message:  resp.ErrorDescription,
 				Provider: "capsolver",
@@ -121,7 +121,7 @@ func (c *capsolverClient) GetTaskResult(ctx context.Context, taskID string) (*up
 		}, nil
 	}
 
-	return &upicap.TaskResult{
+	return &unicap.TaskResult{
 		Status:   mapStatus(resp.Status),
 		Solution: mapSolution(resp.Solution),
 	}, nil
@@ -131,21 +131,21 @@ func (c *capsolverClient) Name() string {
 	return "capsolver"
 }
 
-func mapStatus(status string) upicap.TaskStatus {
+func mapStatus(status string) unicap.TaskStatus {
 	switch status {
 	case "processing":
-		return upicap.TaskStatusProcessing
+		return unicap.TaskStatusProcessing
 	case "ready":
-		return upicap.TaskStatusReady
+		return unicap.TaskStatusReady
 	case "failed":
-		return upicap.TaskStatusFailed
+		return unicap.TaskStatusFailed
 	default:
-		return upicap.TaskStatusPending
+		return unicap.TaskStatusPending
 	}
 }
 
-func mapSolution(solution map[string]any) upicap.Solution {
-	sol := upicap.Solution{
+func mapSolution(solution map[string]any) unicap.Solution {
+	sol := unicap.Solution{
 		Extra: solution,
 	}
 

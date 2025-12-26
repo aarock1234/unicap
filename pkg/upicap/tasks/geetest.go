@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/aarock1234/unicap/pkg/upicap"
+	"github.com/aarock1234/unicap/pkg/unicap"
 )
 
 // GeeTestTask represents a GeeTest v3 solving task
@@ -13,11 +13,11 @@ type GeeTestTask struct {
 	GT                 string
 	Challenge          string
 	APIServerSubdomain string
-	Proxy              *upicap.Proxy
+	Proxy              *unicap.Proxy
 }
 
-func (t *GeeTestTask) Type() upicap.TaskType {
-	return upicap.TaskTypeGeeTest
+func (t *GeeTestTask) Type() unicap.TaskType {
+	return unicap.TaskTypeGeeTest
 }
 
 func (t *GeeTestTask) MarshalJSON() ([]byte, error) {
@@ -27,13 +27,13 @@ func (t *GeeTestTask) MarshalJSON() ([]byte, error) {
 // Validate ensures required fields are present
 func (t *GeeTestTask) Validate() error {
 	if t.WebsiteURL == "" {
-		return fmt.Errorf("website_url: %w", upicap.ErrInvalidTask)
+		return fmt.Errorf("website_url: %w", unicap.ErrInvalidTask)
 	}
 	if t.GT == "" {
-		return fmt.Errorf("gt: %w", upicap.ErrInvalidTask)
+		return fmt.Errorf("gt: %w", unicap.ErrInvalidTask)
 	}
 	if t.Challenge == "" {
-		return fmt.Errorf("challenge: %w", upicap.ErrInvalidTask)
+		return fmt.Errorf("challenge: %w", unicap.ErrInvalidTask)
 	}
 	return nil
 }
@@ -43,11 +43,11 @@ type GeeTestV4Task struct {
 	WebsiteURL         string
 	CaptchaID          string
 	APIServerSubdomain string
-	Proxy              *upicap.Proxy
+	Proxy              *unicap.Proxy
 }
 
-func (t *GeeTestV4Task) Type() upicap.TaskType {
-	return upicap.TaskTypeGeeTestV4
+func (t *GeeTestV4Task) Type() unicap.TaskType {
+	return unicap.TaskTypeGeeTestV4
 }
 
 func (t *GeeTestV4Task) MarshalJSON() ([]byte, error) {
@@ -57,10 +57,10 @@ func (t *GeeTestV4Task) MarshalJSON() ([]byte, error) {
 // Validate ensures required fields are present
 func (t *GeeTestV4Task) Validate() error {
 	if t.WebsiteURL == "" {
-		return fmt.Errorf("website_url: %w", upicap.ErrInvalidTask)
+		return fmt.Errorf("website_url: %w", unicap.ErrInvalidTask)
 	}
 	if t.CaptchaID == "" {
-		return fmt.Errorf("captcha_id: %w", upicap.ErrInvalidTask)
+		return fmt.Errorf("captcha_id: %w", unicap.ErrInvalidTask)
 	}
 	return nil
 }

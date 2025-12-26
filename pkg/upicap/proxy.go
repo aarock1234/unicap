@@ -1,4 +1,4 @@
-package upicap
+package unicap
 
 // ProxyType represents the type of proxy
 type ProxyType string

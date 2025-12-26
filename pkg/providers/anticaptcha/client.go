@@ -8,14 +8,14 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/aarock1234/unicap/pkg/upicap"
+	"github.com/aarock1234/unicap/pkg/unicap"
 )
 
 // anticaptchaClient implements the Provider interface
 type anticaptchaClient struct {
 	apiKey string
-	client *upicap.BaseHTTPClient
-	errors *upicap.ErrorMapper
+	client *unicap.BaseHTTPClient
+	errors *unicap.ErrorMapper
 }
 
 // ProviderOption configures a provider
@@ -43,19 +43,19 @@ func WithLogger(logger *slog.Logger) ProviderOption {
 }
 
 // NewAntiCaptchaProvider creates an AntiCaptcha provider
-func NewAntiCaptchaProvider(apiKey string, opts ...ProviderOption) (upicap.Provider, error) {
+func NewAntiCaptchaProvider(apiKey string, opts ...ProviderOption) (unicap.Provider, error) {
 	if apiKey == "" {
-		return nil, fmt.Errorf("api key: %w", upicap.ErrInvalidAPIKey)
+		return nil, fmt.Errorf("api key: %w", unicap.ErrInvalidAPIKey)
 	}
 
 	c := &anticaptchaClient{
 		apiKey: apiKey,
-		client: &upicap.BaseHTTPClient{
+		client: &unicap.BaseHTTPClient{
 			HTTPClient: &http.Client{Timeout: 30 * time.Second},
 			Logger:     slog.New(slog.NewTextHandler(io.Discard, nil)),
 			BaseURL:    "https://api.anti-captcha.com",
 		},
-		errors: upicap.StandardErrorMapper(
+		errors: unicap.StandardErrorMapper(
 			"anticaptcha",
 			[]string{"ERROR_KEY_DOES_NOT_EXIST", "ERROR_WRONG_USER_KEY"},
 			[]string{"ERROR_ZERO_BALANCE", "ERROR_NO_SLOT_AVAILABLE"},
@@ -71,7 +71,7 @@ func NewAntiCaptchaProvider(apiKey string, opts ...ProviderOption) (upicap.Provi
 	return c, nil
 }
 
-func (c *anticaptchaClient) CreateTask(ctx context.Context, task upicap.Task) (string, error) {
+func (c *anticaptchaClient) CreateTask(ctx context.Context, task unicap.Task) (string, error) {
 	anticaptchaTask, err := mapToAntiCaptchaTask(task)
 	if err != nil {
 		return "", fmt.Errorf("mapping task: %w", err)
@@ -99,7 +99,7 @@ func (c *anticaptchaClient) CreateTask(ctx context.Context, task upicap.Task) (s
 	return fmt.Sprintf("%d", resp.TaskID), nil
 }
 
-func (c *anticaptchaClient) GetTaskResult(ctx context.Context, taskID string) (*upicap.TaskResult, error) {
+func (c *anticaptchaClient) GetTaskResult(ctx context.Context, taskID string) (*unicap.TaskResult, error) {
 	req := getTaskResultRequest{
 		ClientKey: c.apiKey,
 		TaskID:    taskID,
@@ -111,9 +111,9 @@ func (c *anticaptchaClient) GetTaskResult(ctx context.Context, taskID string) (*
 	}
 
 	if resp.ErrorID != 0 {
-		return &upicap.TaskResult{
-			Status: upicap.TaskStatusFailed,
-			Error: &upicap.Error{
+		return &unicap.TaskResult{
+			Status: unicap.TaskStatusFailed,
+			Error: &unicap.Error{
 				Code:     resp.ErrorCode,
 				Message:  resp.ErrorDescription,
 				Provider: "anticaptcha",
@@ -121,7 +121,7 @@ func (c *anticaptchaClient) GetTaskResult(ctx context.Context, taskID string) (*
 		}, nil
 	}
 
-	return &upicap.TaskResult{
+	return &unicap.TaskResult{
 		Status:   mapStatus(resp.Status),
 		Solution: mapSolution(resp.Solution),
 	}, nil
@@ -131,19 +131,19 @@ func (c *anticaptchaClient) Name() string {
 	return "anticaptcha"
 }
 
-func mapStatus(status string) upicap.TaskStatus {
+func mapStatus(status string) unicap.TaskStatus {
 	switch status {
 	case "processing":
-		return upicap.TaskStatusProcessing
+		return unicap.TaskStatusProcessing
 	case "ready":
-		return upicap.TaskStatusReady
+		return unicap.TaskStatusReady
 	default:
-		return upicap.TaskStatusPending
+		return unicap.TaskStatusPending
 	}
 }
 
-func mapSolution(solution map[string]any) upicap.Solution {
-	sol := upicap.Solution{
+func mapSolution(solution map[string]any) unicap.Solution {
+	sol := unicap.Solution{
 		Extra: solution,
 	}
 

@@ -1,4 +1,4 @@
-package upicap
+package unicap
 
 import (
 	"bytes"

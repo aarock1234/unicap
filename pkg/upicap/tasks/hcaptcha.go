@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"github.com/aarock1234/unicap/pkg/upicap"
+	"github.com/aarock1234/unicap/pkg/unicap"
 )
 
 // HCaptchaTask represents an hCaptcha solving task
@@ -15,11 +15,11 @@ type HCaptchaTask struct {
 	EnterpriseData map[string]any
 	UserAgent      string
 	Cookies        string
-	Proxy          *upicap.Proxy
+	Proxy          *unicap.Proxy
 }
 
-func (t *HCaptchaTask) Type() upicap.TaskType {
-	return upicap.TaskTypeHCaptcha
+func (t *HCaptchaTask) Type() unicap.TaskType {
+	return unicap.TaskTypeHCaptcha
 }
 
 func (t *HCaptchaTask) MarshalJSON() ([]byte, error) {
@@ -29,10 +29,10 @@ func (t *HCaptchaTask) MarshalJSON() ([]byte, error) {
 // Validate ensures required fields are present
 func (t *HCaptchaTask) Validate() error {
 	if t.WebsiteURL == "" {
-		return fmt.Errorf("website_url: %w", upicap.ErrInvalidTask)
+		return fmt.Errorf("website_url: %w", unicap.ErrInvalidTask)
 	}
 	if t.WebsiteKey == "" {
-		return fmt.Errorf("website_key: %w", upicap.ErrInvalidTask)
+		return fmt.Errorf("website_key: %w", unicap.ErrInvalidTask)
 	}
 	return nil
 }

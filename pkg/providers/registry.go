@@ -6,13 +6,13 @@ import (
 	"github.com/aarock1234/unicap/pkg/providers/anticaptcha"
 	"github.com/aarock1234/unicap/pkg/providers/capsolver"
 	"github.com/aarock1234/unicap/pkg/providers/twocaptcha"
-	"github.com/aarock1234/unicap/pkg/upicap"
+	"github.com/aarock1234/unicap/pkg/unicap"
 )
 
 var providerRegistry = make(map[string]ProviderFactory)
 
 // ProviderFactory creates a provider instance
-type ProviderFactory func(apiKey string) (upicap.Provider, error)
+type ProviderFactory func(apiKey string) (unicap.Provider, error)
 
 // RegisterProvider adds a provider to the registry
 func RegisterProvider(name string, factory ProviderFactory) {
@@ -35,7 +35,7 @@ func GetProviderNames() []string {
 }
 
 // NewProvider creates a provider by name and API key
-func NewProvider(name, apiKey string) (upicap.Provider, error) {
+func NewProvider(name, apiKey string) (unicap.Provider, error) {
 	factory, ok := GetProvider(name)
 	if !ok {
 		return nil, fmt.Errorf("unknown provider: %s", name)
@@ -44,15 +44,15 @@ func NewProvider(name, apiKey string) (upicap.Provider, error) {
 }
 
 func init() {
-	RegisterProvider("capsolver", func(apiKey string) (upicap.Provider, error) {
+	RegisterProvider("capsolver", func(apiKey string) (unicap.Provider, error) {
 		return capsolver.NewCapSolverProvider(apiKey)
 	})
 
-	RegisterProvider("2captcha", func(apiKey string) (upicap.Provider, error) {
+	RegisterProvider("2captcha", func(apiKey string) (unicap.Provider, error) {
 		return twocaptcha.NewTwoCaptchaProvider(apiKey)
 	})
 
-	RegisterProvider("anticaptcha", func(apiKey string) (upicap.Provider, error) {
+	RegisterProvider("anticaptcha", func(apiKey string) (unicap.Provider, error) {
 		return anticaptcha.NewAntiCaptchaProvider(apiKey)
 	})
 }
