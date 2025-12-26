@@ -1,5 +1,9 @@
 # upicap
 
+[![Go Reference](https://pkg.go.dev/badge/github.com/aarock1234/unicap.svg)](https://pkg.go.dev/github.com/aarock1234/unicap)
+[![Release](https://img.shields.io/github/v/release/aarock1234/unicap)](https://github.com/aarock1234/unicap/releases)
+[![License](https://img.shields.io/badge/license-Elastic%202.0-blue.svg)](LICENSE)
+
 Universal captcha solving SDK for Go. One interface, multiple providers.
 
 ```go

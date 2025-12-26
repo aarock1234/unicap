@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"upicap/pkg/upicap"
+	"github.com/aarock1234/unicap/pkg/upicap"
 )
 
 // GeeTestTask represents a GeeTest v3 solving task

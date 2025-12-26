@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"upicap/pkg/upicap"
+	"github.com/aarock1234/unicap/pkg/upicap"
 )
 
 // ReCaptchaV2Task represents a ReCaptcha V2 solving task

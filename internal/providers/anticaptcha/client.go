@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"upicap/pkg/upicap"
+	"github.com/aarock1234/unicap/pkg/upicap"
 )
 
 // anticaptchaClient implements the Provider interface

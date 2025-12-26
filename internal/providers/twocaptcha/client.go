@@ -8,7 +8,7 @@ import (
 	"net/http"
 	"time"
 
-	"upicap/pkg/upicap"
+	"github.com/aarock1234/unicap/pkg/upicap"
 )
 
 // twocaptchaClient implements the Provider interface

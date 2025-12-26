@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 
-	"upicap/pkg/upicap"
+	"github.com/aarock1234/unicap/pkg/upicap"
 )
 
 // HCaptchaTask represents an hCaptcha solving task

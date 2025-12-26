@@ -3,10 +3,10 @@ package providers
 import (
 	"fmt"
 
-	"upicap/internal/providers/anticaptcha"
-	"upicap/internal/providers/capsolver"
-	"upicap/internal/providers/twocaptcha"
-	"upicap/pkg/upicap"
+	"github.com/aarock1234/unicap/internal/providers/anticaptcha"
+	"github.com/aarock1234/unicap/internal/providers/capsolver"
+	"github.com/aarock1234/unicap/internal/providers/twocaptcha"
+	"github.com/aarock1234/unicap/pkg/upicap"
 )
 
 var providerRegistry = make(map[string]ProviderFactory)

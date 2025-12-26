@@ -8,11 +8,11 @@ import (
 	"os"
 	"time"
 
-	"upicap/internal/providers/capsolver"
-	"upicap/pkg/upicap"
-	"upicap/pkg/upicap/tasks"
+	"github.com/aarock1234/unicap/internal/providers/capsolver"
+	"github.com/aarock1234/unicap/pkg/upicap"
+	"github.com/aarock1234/unicap/pkg/upicap/tasks"
 
-	_ "upicap/internal/logger"
+	_ "github.com/aarock1234/unicap/internal/logger"
 )
 
 func main() {

@@ -3,8 +3,8 @@ package twocaptcha
 import (
 	"fmt"
 
-	"upicap/pkg/upicap"
-	"upicap/pkg/upicap/tasks"
+	"github.com/aarock1234/unicap/pkg/upicap"
+	"github.com/aarock1234/unicap/pkg/upicap/tasks"
 )
 
 // Task types for 2Captcha API

@@ -1,4 +1,4 @@
-module upicap
+module github.com/aarock1234/unicap
 
 go 1.25
 
