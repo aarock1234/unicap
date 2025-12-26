@@ -2,10 +2,14 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"fmt"
-	"log"
+	"io"
 	"log/slog"
+	"net/http"
+	"net/url"
 	"os"
+	"strings"
 	"time"
 
 	"github.com/aarock1234/unicap/pkg/providers/capsolver"
@@ -16,14 +20,16 @@ import (
 )
 
 func main() {
-	apiKey := os.Getenv("CAPSOLVER_API_KEY")
-	if apiKey == "" {
-		log.Fatal("CAPSOLVER_API_KEY environment variable is required")
-	}
+	// apiKey := os.Getenv("CAPSOLVER_API_KEY")
+	// if apiKey == "" {
+	// 	log.Fatal("CAPSOLVER_API_KEY environment variable is required")
+	// }
+	apiKey := "CAP-B8096F9442CC41907743A86FF4FDAE8B"
 
 	provider, err := capsolver.NewCapSolverProvider(apiKey)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("failed to create provider", slog.Any("error", err))
+		os.Exit(1)
 	}
 
 	client, err := upicap.NewClient(
@@ -31,24 +37,19 @@ func main() {
 		upicap.WithLogger(slog.Default()),
 	)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("failed to create client", slog.Any("error", err))
+		os.Exit(1)
 	}
 
 	exampleSynchronous(client)
 	exampleAsynchronous(client)
-
-	fmt.Println("\nVerify the token with:")
-	fmt.Println("curl 'https://www.google.com/recaptcha/api2/demo' \\")
-	fmt.Println("  -H 'content-type: application/x-www-form-urlencoded' \\")
-	fmt.Println("  --data-raw \"g-recaptcha-response=${TOKEN}\"")
-	fmt.Println("\nExpected: Verification Success... Hooray!")
 }
 
 func exampleSynchronous(client *upicap.Client) {
-	fmt.Println("=== Synchronous API Example ===")
+	slog.Info("synchronous api example")
 
 	task := &tasks.ReCaptchaV2Task{
-		WebsiteURL: "https://example.com",
+		WebsiteURL: "https://www.google.com/recaptcha/api2/demo",
 		WebsiteKey: "6Le-wvkSAAAAAPBMRTvw0Q4Muexq9bi0DJwx_mJ-",
 	}
 
@@ -57,47 +58,135 @@ func exampleSynchronous(client *upicap.Client) {
 
 	solution, err := client.Solve(ctx, task)
 	if err != nil {
-		log.Printf("failed to solve captcha: %v", err)
+		slog.ErrorContext(ctx, "failed to solve captcha", slog.Any("error", err))
 		return
 	}
 
-	fmt.Printf("captcha solved: %s\n", solution.Token)
+	slog.InfoContext(ctx, "captcha solved", slog.String("token", solution.Token))
+
+	if err := verifyReCaptchaV2(ctx, solution.Token); err != nil {
+		slog.ErrorContext(ctx, "verification failed", slog.Any("error", err))
+		return
+	}
 }
 
 func exampleAsynchronous(client *upicap.Client) {
-	fmt.Println("\n=== Asynchronous API Example ===")
+	slog.Info("asynchronous api example")
 
 	task := &tasks.ReCaptchaV3Task{
-		WebsiteURL: "https://example.com",
-		WebsiteKey: "6LdyC2cUAAAAACGuDKpXeDorzUDWXmdqeg-xy696",
-		PageAction: "verify",
-		MinScore:   0.7,
+		WebsiteURL: "https://recaptcha-demo.appspot.com/recaptcha-v3-request-scores.php",
+		WebsiteKey: "6LdKlZEpAAAAAAOQjzC2v_d36tWxCl6dWsozdSy9",
+		PageAction: "examples/v3scores",
+		// MinScore:   0.7, // CapSolver does not support MinScore
 	}
 
 	ctx := context.Background()
 
 	taskID, err := client.CreateTask(ctx, task)
 	if err != nil {
-		log.Printf("failed to create task: %v", err)
+		slog.ErrorContext(ctx, "failed to create task", slog.Any("error", err))
 		return
 	}
 
-	fmt.Printf("task created: %s\n", taskID)
+	slog.InfoContext(ctx, "task created", slog.String("task_id", taskID))
 
 	time.Sleep(10 * time.Second)
 
 	result, err := client.GetTaskResult(ctx, taskID)
 	if err != nil {
-		log.Printf("failed to get task result: %v", err)
+		slog.ErrorContext(ctx, "failed to get task result", slog.Any("error", err))
 		return
 	}
 
 	switch result.Status {
 	case upicap.TaskStatusReady:
-		fmt.Printf("captcha solved: %s\n", result.Solution.Token)
+		slog.InfoContext(ctx, "captcha solved", slog.String("token", result.Solution.Token))
+		if err := verifyReCaptchaV3(ctx, result.Solution.Token); err != nil {
+			slog.ErrorContext(ctx, "verification failed", slog.Any("error", err))
+		}
 	case upicap.TaskStatusProcessing:
-		fmt.Println("still processing, check again later")
+		slog.InfoContext(ctx, "still processing, check again later")
 	case upicap.TaskStatusFailed:
-		fmt.Printf("task failed: %v\n", result.Error)
+		slog.ErrorContext(ctx, "task failed", slog.Any("error", result.Error))
 	}
+}
+
+func verifyReCaptchaV2(ctx context.Context, token string) error {
+	slog.InfoContext(ctx, "verifying token with recaptcha v2 demo")
+
+	data := url.Values{
+		"g-recaptcha-response": {token},
+	}
+
+	req, err := http.NewRequestWithContext(ctx, "POST", "https://www.google.com/recaptcha/api2/demo", strings.NewReader(data.Encode()))
+	if err != nil {
+		return fmt.Errorf("creating request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("sending request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return fmt.Errorf("reading response: %w", err)
+	}
+
+	slog.InfoContext(ctx, "verification response", slog.String("body", string(body)))
+	if strings.Contains(string(body), "Verification Success") {
+		slog.InfoContext(ctx, "verification successful")
+	} else {
+		slog.WarnContext(ctx, "verification may have failed - check response above")
+	}
+
+	return nil
+}
+
+type verifyReCaptchaV3Response struct {
+	Success    bool     `json:"success"`
+	Score      float64  `json:"score"`
+	ErrorCodes []string `json:"error-codes"`
+}
+
+func verifyReCaptchaV3(ctx context.Context, token string) error {
+	slog.InfoContext(ctx, "verifying token with recaptcha v3 demo")
+
+	data := url.Values{
+		"token": {token},
+	}
+
+	verifyURL, err := url.Parse("https://recaptcha-demo.appspot.com/recaptcha-v3-verify.php")
+	if err != nil {
+		return fmt.Errorf("parsing URL: %w", err)
+	}
+
+	verifyURL.RawQuery = data.Encode()
+
+	req, err := http.NewRequestWithContext(ctx, "POST", verifyURL.String(), nil)
+	if err != nil {
+		return fmt.Errorf("creating request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	resp, err := http.DefaultClient.Do(req)
+	if err != nil {
+		return fmt.Errorf("sending request: %w", err)
+	}
+	defer resp.Body.Close()
+
+	var verifyResponse verifyReCaptchaV3Response
+	if err := json.NewDecoder(resp.Body).Decode(&verifyResponse); err != nil {
+		return fmt.Errorf("decoding response: %w", err)
+	}
+
+	if !verifyResponse.Success {
+		return fmt.Errorf("verification failed: %s", verifyResponse.ErrorCodes)
+	}
+
+	slog.InfoContext(ctx, "verification successful", slog.Float64("score", verifyResponse.Score))
+
+	return nil
 }
