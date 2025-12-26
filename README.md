@@ -1,7 +1,7 @@
 # unicap
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/aarock1234/unicap.svg)](https://pkg.go.dev/github.com/aarock1234/unicap)
-[![Release](https://img.shields.io/github/v/release/aarock1234/unicap)](https://github.com/aarock1234/unicap/releases)
+[![Go Reference](https://pkg.go.dev/badge/unicap.svg)](https://pkg.go.dev/unicap)
+[![Release](https://img.shields.io/github/v/release/aarock1234/unicap)](https://unicap/releases)
 [![License](https://img.shields.io/badge/license-Elastic%202.0-blue.svg)](LICENSE)
 
 Universal captcha solving SDK for Go. One interface, multiple providers.
@@ -19,9 +19,9 @@ import (
     "strings"
     "time"
 
-    "github.com/aarock1234/unicap/pkg/providers/capsolver"
-    "github.com/aarock1234/unicap/pkg/unicap"
-    "github.com/aarock1234/unicap/pkg/unicap/tasks"
+    "github.com/aarock1234/unicap/providers/capsolver"
+    "github.com/aarock1234/unicap/unicap"
+    "github.com/aarock1234/unicap/unicap/tasks"
 )
 
 func main() {
@@ -110,7 +110,7 @@ func main() {
 ## Installation
 
 ```bash
-go get -u github.com/aarock1234/unicap
+go get -u unicap
 ```
 
 ## Quick Start

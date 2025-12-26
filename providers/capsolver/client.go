@@ -1,4 +1,4 @@
-package twocaptcha
+package capsolver
 
 import (
 	"context"
@@ -8,59 +8,59 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/aarock1234/unicap/pkg/unicap"
+	"github.com/aarock1234/unicap/unicap"
 )
 
-// twocaptchaClient implements the Provider interface
-type twocaptchaClient struct {
+// capsolverClient implements the Provider interface
+type capsolverClient struct {
 	apiKey string
 	client *unicap.BaseHTTPClient
 	errors *unicap.ErrorMapper
 }
 
 // ProviderOption configures a provider
-type ProviderOption func(*twocaptchaClient)
+type ProviderOption func(*capsolverClient)
 
 // WithHTTPClient sets a custom HTTP client
 func WithHTTPClient(client *http.Client) ProviderOption {
-	return func(c *twocaptchaClient) {
+	return func(c *capsolverClient) {
 		c.client.HTTPClient = client
 	}
 }
 
 // WithBaseURL sets a custom base URL (for testing)
 func WithBaseURL(url string) ProviderOption {
-	return func(c *twocaptchaClient) {
+	return func(c *capsolverClient) {
 		c.client.BaseURL = url
 	}
 }
 
 // WithLogger sets a custom logger
 func WithLogger(logger *slog.Logger) ProviderOption {
-	return func(c *twocaptchaClient) {
+	return func(c *capsolverClient) {
 		c.client.Logger = logger
 	}
 }
 
-// NewTwoCaptchaProvider creates a 2Captcha provider
-func NewTwoCaptchaProvider(apiKey string, opts ...ProviderOption) (unicap.Provider, error) {
+// NewCapSolverProvider creates a CapSolver provider
+func NewCapSolverProvider(apiKey string, opts ...ProviderOption) (unicap.Provider, error) {
 	if apiKey == "" {
 		return nil, fmt.Errorf("api key: %w", unicap.ErrInvalidAPIKey)
 	}
 
-	c := &twocaptchaClient{
+	c := &capsolverClient{
 		apiKey: apiKey,
 		client: &unicap.BaseHTTPClient{
 			HTTPClient: &http.Client{Timeout: 30 * time.Second},
 			Logger:     slog.New(slog.NewTextHandler(io.Discard, nil)),
-			BaseURL:    "https://api.2captcha.com",
+			BaseURL:    "https://api.capsolver.com",
 		},
 		errors: unicap.StandardErrorMapper(
-			"2captcha",
-			[]string{"ERROR_KEY_DOES_NOT_EXIST", "ERROR_WRONG_USER_KEY"},
-			[]string{"ERROR_ZERO_BALANCE"},
-			[]string{"ERROR_TASK_ABSENT"},
-			[]string{"ERROR_WRONG_TASK_DATA"},
+			"capsolver",
+			[]string{"ERROR_KEY_INVALID", "ERROR_KEY_DOES_NOT_EXIST"},
+			[]string{"ERROR_ZERO_BALANCE", "ERROR_NO_SLOT_AVAILABLE"},
+			[]string{"ERROR_TASK_NOT_FOUND"},
+			[]string{"ERROR_INVALID_TASK_DATA"},
 		),
 	}
 
@@ -71,15 +71,15 @@ func NewTwoCaptchaProvider(apiKey string, opts ...ProviderOption) (unicap.Provid
 	return c, nil
 }
 
-func (c *twocaptchaClient) CreateTask(ctx context.Context, task unicap.Task) (string, error) {
-	twocaptchaTask, err := mapToTwoCaptchaTask(task)
+func (c *capsolverClient) CreateTask(ctx context.Context, task unicap.Task) (string, error) {
+	capsolverTask, err := mapToCapSolverTask(task)
 	if err != nil {
 		return "", fmt.Errorf("mapping task: %w", err)
 	}
 
 	req := createTaskRequest{
 		ClientKey: c.apiKey,
-		Task:      twocaptchaTask,
+		Task:      capsolverTask,
 	}
 
 	var resp createTaskResponse
@@ -99,7 +99,7 @@ func (c *twocaptchaClient) CreateTask(ctx context.Context, task unicap.Task) (st
 	return resp.TaskID, nil
 }
 
-func (c *twocaptchaClient) GetTaskResult(ctx context.Context, taskID string) (*unicap.TaskResult, error) {
+func (c *capsolverClient) GetTaskResult(ctx context.Context, taskID string) (*unicap.TaskResult, error) {
 	req := getTaskResultRequest{
 		ClientKey: c.apiKey,
 		TaskID:    taskID,
@@ -116,7 +116,7 @@ func (c *twocaptchaClient) GetTaskResult(ctx context.Context, taskID string) (*u
 			Error: &unicap.Error{
 				Code:     resp.ErrorCode,
 				Message:  resp.ErrorDescription,
-				Provider: "2captcha",
+				Provider: "capsolver",
 			},
 		}, nil
 	}
@@ -127,8 +127,8 @@ func (c *twocaptchaClient) GetTaskResult(ctx context.Context, taskID string) (*u
 	}, nil
 }
 
-func (c *twocaptchaClient) Name() string {
-	return "2captcha"
+func (c *capsolverClient) Name() string {
+	return "capsolver"
 }
 
 func mapStatus(status string) unicap.TaskStatus {
@@ -137,6 +137,8 @@ func mapStatus(status string) unicap.TaskStatus {
 		return unicap.TaskStatusProcessing
 	case "ready":
 		return unicap.TaskStatusReady
+	case "failed":
+		return unicap.TaskStatusFailed
 	default:
 		return unicap.TaskStatusPending
 	}

@@ -12,9 +12,9 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aarock1234/unicap/pkg/providers/capsolver"
-	"github.com/aarock1234/unicap/pkg/unicap"
-	"github.com/aarock1234/unicap/pkg/unicap/tasks"
+	"github.com/aarock1234/unicap/providers/capsolver"
+	"github.com/aarock1234/unicap/unicap"
+	"github.com/aarock1234/unicap/unicap/tasks"
 
 	_ "github.com/aarock1234/unicap/internal/logger"
 )

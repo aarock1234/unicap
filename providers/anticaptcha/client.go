@@ -1,4 +1,4 @@
-package capsolver
+package anticaptcha
 
 import (
 	"context"
@@ -8,59 +8,59 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/aarock1234/unicap/pkg/unicap"
+	"github.com/aarock1234/unicap/unicap"
 )
 
-// capsolverClient implements the Provider interface
-type capsolverClient struct {
+// anticaptchaClient implements the Provider interface
+type anticaptchaClient struct {
 	apiKey string
 	client *unicap.BaseHTTPClient
 	errors *unicap.ErrorMapper
 }
 
 // ProviderOption configures a provider
-type ProviderOption func(*capsolverClient)
+type ProviderOption func(*anticaptchaClient)
 
 // WithHTTPClient sets a custom HTTP client
 func WithHTTPClient(client *http.Client) ProviderOption {
-	return func(c *capsolverClient) {
+	return func(c *anticaptchaClient) {
 		c.client.HTTPClient = client
 	}
 }
 
 // WithBaseURL sets a custom base URL (for testing)
 func WithBaseURL(url string) ProviderOption {
-	return func(c *capsolverClient) {
+	return func(c *anticaptchaClient) {
 		c.client.BaseURL = url
 	}
 }
 
 // WithLogger sets a custom logger
 func WithLogger(logger *slog.Logger) ProviderOption {
-	return func(c *capsolverClient) {
+	return func(c *anticaptchaClient) {
 		c.client.Logger = logger
 	}
 }
 
-// NewCapSolverProvider creates a CapSolver provider
-func NewCapSolverProvider(apiKey string, opts ...ProviderOption) (unicap.Provider, error) {
+// NewAntiCaptchaProvider creates an AntiCaptcha provider
+func NewAntiCaptchaProvider(apiKey string, opts ...ProviderOption) (unicap.Provider, error) {
 	if apiKey == "" {
 		return nil, fmt.Errorf("api key: %w", unicap.ErrInvalidAPIKey)
 	}
 
-	c := &capsolverClient{
+	c := &anticaptchaClient{
 		apiKey: apiKey,
 		client: &unicap.BaseHTTPClient{
 			HTTPClient: &http.Client{Timeout: 30 * time.Second},
 			Logger:     slog.New(slog.NewTextHandler(io.Discard, nil)),
-			BaseURL:    "https://api.capsolver.com",
+			BaseURL:    "https://api.anti-captcha.com",
 		},
 		errors: unicap.StandardErrorMapper(
-			"capsolver",
-			[]string{"ERROR_KEY_INVALID", "ERROR_KEY_DOES_NOT_EXIST"},
+			"anticaptcha",
+			[]string{"ERROR_KEY_DOES_NOT_EXIST", "ERROR_WRONG_USER_KEY"},
 			[]string{"ERROR_ZERO_BALANCE", "ERROR_NO_SLOT_AVAILABLE"},
-			[]string{"ERROR_TASK_NOT_FOUND"},
-			[]string{"ERROR_INVALID_TASK_DATA"},
+			[]string{"ERROR_TASK_ABSENT"},
+			[]string{"ERROR_WRONG_TASK_DATA"},
 		),
 	}
 
@@ -71,15 +71,15 @@ func NewCapSolverProvider(apiKey string, opts ...ProviderOption) (unicap.Provide
 	return c, nil
 }
 
-func (c *capsolverClient) CreateTask(ctx context.Context, task unicap.Task) (string, error) {
-	capsolverTask, err := mapToCapSolverTask(task)
+func (c *anticaptchaClient) CreateTask(ctx context.Context, task unicap.Task) (string, error) {
+	anticaptchaTask, err := mapToAntiCaptchaTask(task)
 	if err != nil {
 		return "", fmt.Errorf("mapping task: %w", err)
 	}
 
 	req := createTaskRequest{
 		ClientKey: c.apiKey,
-		Task:      capsolverTask,
+		Task:      anticaptchaTask,
 	}
 
 	var resp createTaskResponse
@@ -92,14 +92,14 @@ func (c *capsolverClient) CreateTask(ctx context.Context, task unicap.Task) (str
 	}
 
 	c.client.Logger.InfoContext(ctx, "task created",
-		slog.String("task_id", resp.TaskID),
+		slog.Int("task_id", resp.TaskID),
 		slog.String("task_type", string(task.Type())),
 	)
 
-	return resp.TaskID, nil
+	return fmt.Sprintf("%d", resp.TaskID), nil
 }
 
-func (c *capsolverClient) GetTaskResult(ctx context.Context, taskID string) (*unicap.TaskResult, error) {
+func (c *anticaptchaClient) GetTaskResult(ctx context.Context, taskID string) (*unicap.TaskResult, error) {
 	req := getTaskResultRequest{
 		ClientKey: c.apiKey,
 		TaskID:    taskID,
@@ -116,7 +116,7 @@ func (c *capsolverClient) GetTaskResult(ctx context.Context, taskID string) (*un
 			Error: &unicap.Error{
 				Code:     resp.ErrorCode,
 				Message:  resp.ErrorDescription,
-				Provider: "capsolver",
+				Provider: "anticaptcha",
 			},
 		}, nil
 	}
@@ -127,8 +127,8 @@ func (c *capsolverClient) GetTaskResult(ctx context.Context, taskID string) (*un
 	}, nil
 }
 
-func (c *capsolverClient) Name() string {
-	return "capsolver"
+func (c *anticaptchaClient) Name() string {
+	return "anticaptcha"
 }
 
 func mapStatus(status string) unicap.TaskStatus {
@@ -137,8 +137,6 @@ func mapStatus(status string) unicap.TaskStatus {
 		return unicap.TaskStatusProcessing
 	case "ready":
 		return unicap.TaskStatusReady
-	case "failed":
-		return unicap.TaskStatusFailed
 	default:
 		return unicap.TaskStatusPending
 	}
@@ -172,7 +170,7 @@ type createTaskResponse struct {
 	ErrorID          int    `json:"errorId"`
 	ErrorCode        string `json:"errorCode,omitempty"`
 	ErrorDescription string `json:"errorDescription,omitempty"`
-	TaskID           string `json:"taskId,omitempty"`
+	TaskID           int    `json:"taskId,omitempty"`
 }
 
 type getTaskResultRequest struct {

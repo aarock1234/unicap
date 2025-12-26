@@ -8,8 +8,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/aarock1234/unicap/pkg/unicap"
-	"github.com/aarock1234/unicap/pkg/unicap/tasks"
+	"github.com/aarock1234/unicap/unicap"
+	"github.com/aarock1234/unicap/unicap/tasks"
 )
 
 // customProvider implements the unicap.Provider interface

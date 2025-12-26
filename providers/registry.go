@@ -3,10 +3,10 @@ package providers
 import (
 	"fmt"
 
-	"github.com/aarock1234/unicap/pkg/providers/anticaptcha"
-	"github.com/aarock1234/unicap/pkg/providers/capsolver"
-	"github.com/aarock1234/unicap/pkg/providers/twocaptcha"
-	"github.com/aarock1234/unicap/pkg/unicap"
+	"github.com/aarock1234/unicap/providers/anticaptcha"
+	"github.com/aarock1234/unicap/providers/capsolver"
+	"github.com/aarock1234/unicap/providers/twocaptcha"
+	"github.com/aarock1234/unicap/unicap"
 )
 
 var providerRegistry = make(map[string]ProviderFactory)

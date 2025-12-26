@@ -1,4 +1,4 @@
-package anticaptcha
+package twocaptcha
 
 import (
 	"context"
@@ -8,57 +8,57 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/aarock1234/unicap/pkg/unicap"
+	"github.com/aarock1234/unicap/unicap"
 )
 
-// anticaptchaClient implements the Provider interface
-type anticaptchaClient struct {
+// twocaptchaClient implements the Provider interface
+type twocaptchaClient struct {
 	apiKey string
 	client *unicap.BaseHTTPClient
 	errors *unicap.ErrorMapper
 }
 
 // ProviderOption configures a provider
-type ProviderOption func(*anticaptchaClient)
+type ProviderOption func(*twocaptchaClient)
 
 // WithHTTPClient sets a custom HTTP client
 func WithHTTPClient(client *http.Client) ProviderOption {
-	return func(c *anticaptchaClient) {
+	return func(c *twocaptchaClient) {
 		c.client.HTTPClient = client
 	}
 }
 
 // WithBaseURL sets a custom base URL (for testing)
 func WithBaseURL(url string) ProviderOption {
-	return func(c *anticaptchaClient) {
+	return func(c *twocaptchaClient) {
 		c.client.BaseURL = url
 	}
 }
 
 // WithLogger sets a custom logger
 func WithLogger(logger *slog.Logger) ProviderOption {
-	return func(c *anticaptchaClient) {
+	return func(c *twocaptchaClient) {
 		c.client.Logger = logger
 	}
 }
 
-// NewAntiCaptchaProvider creates an AntiCaptcha provider
-func NewAntiCaptchaProvider(apiKey string, opts ...ProviderOption) (unicap.Provider, error) {
+// NewTwoCaptchaProvider creates a 2Captcha provider
+func NewTwoCaptchaProvider(apiKey string, opts ...ProviderOption) (unicap.Provider, error) {
 	if apiKey == "" {
 		return nil, fmt.Errorf("api key: %w", unicap.ErrInvalidAPIKey)
 	}
 
-	c := &anticaptchaClient{
+	c := &twocaptchaClient{
 		apiKey: apiKey,
 		client: &unicap.BaseHTTPClient{
 			HTTPClient: &http.Client{Timeout: 30 * time.Second},
 			Logger:     slog.New(slog.NewTextHandler(io.Discard, nil)),
-			BaseURL:    "https://api.anti-captcha.com",
+			BaseURL:    "https://api.2captcha.com",
 		},
 		errors: unicap.StandardErrorMapper(
-			"anticaptcha",
+			"2captcha",
 			[]string{"ERROR_KEY_DOES_NOT_EXIST", "ERROR_WRONG_USER_KEY"},
-			[]string{"ERROR_ZERO_BALANCE", "ERROR_NO_SLOT_AVAILABLE"},
+			[]string{"ERROR_ZERO_BALANCE"},
 			[]string{"ERROR_TASK_ABSENT"},
 			[]string{"ERROR_WRONG_TASK_DATA"},
 		),
@@ -71,15 +71,15 @@ func NewAntiCaptchaProvider(apiKey string, opts ...ProviderOption) (unicap.Provi
 	return c, nil
 }
 
-func (c *anticaptchaClient) CreateTask(ctx context.Context, task unicap.Task) (string, error) {
-	anticaptchaTask, err := mapToAntiCaptchaTask(task)
+func (c *twocaptchaClient) CreateTask(ctx context.Context, task unicap.Task) (string, error) {
+	twocaptchaTask, err := mapToTwoCaptchaTask(task)
 	if err != nil {
 		return "", fmt.Errorf("mapping task: %w", err)
 	}
 
 	req := createTaskRequest{
 		ClientKey: c.apiKey,
-		Task:      anticaptchaTask,
+		Task:      twocaptchaTask,
 	}
 
 	var resp createTaskResponse
@@ -92,14 +92,14 @@ func (c *anticaptchaClient) CreateTask(ctx context.Context, task unicap.Task) (s
 	}
 
 	c.client.Logger.InfoContext(ctx, "task created",
-		slog.Int("task_id", resp.TaskID),
+		slog.String("task_id", resp.TaskID),
 		slog.String("task_type", string(task.Type())),
 	)
 
-	return fmt.Sprintf("%d", resp.TaskID), nil
+	return resp.TaskID, nil
 }
 
-func (c *anticaptchaClient) GetTaskResult(ctx context.Context, taskID string) (*unicap.TaskResult, error) {
+func (c *twocaptchaClient) GetTaskResult(ctx context.Context, taskID string) (*unicap.TaskResult, error) {
 	req := getTaskResultRequest{
 		ClientKey: c.apiKey,
 		TaskID:    taskID,
@@ -116,7 +116,7 @@ func (c *anticaptchaClient) GetTaskResult(ctx context.Context, taskID string) (*
 			Error: &unicap.Error{
 				Code:     resp.ErrorCode,
 				Message:  resp.ErrorDescription,
-				Provider: "anticaptcha",
+				Provider: "2captcha",
 			},
 		}, nil
 	}
@@ -127,8 +127,8 @@ func (c *anticaptchaClient) GetTaskResult(ctx context.Context, taskID string) (*
 	}, nil
 }
 
-func (c *anticaptchaClient) Name() string {
-	return "anticaptcha"
+func (c *twocaptchaClient) Name() string {
+	return "2captcha"
 }
 
 func mapStatus(status string) unicap.TaskStatus {
@@ -170,7 +170,7 @@ type createTaskResponse struct {
 	ErrorID          int    `json:"errorId"`
 	ErrorCode        string `json:"errorCode,omitempty"`
 	ErrorDescription string `json:"errorDescription,omitempty"`
-	TaskID           int    `json:"taskId,omitempty"`
+	TaskID           string `json:"taskId,omitempty"`
 }
 
 type getTaskResultRequest struct {
