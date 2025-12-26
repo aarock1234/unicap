@@ -3,13 +3,80 @@
 Universal captcha solving SDK for Go. One interface, multiple providers.
 
 ```go
-provider, _ := capsolver.NewCapSolverProvider("API_KEY")
-client, _ := upicap.NewClient(provider)
+package main
 
-solution, _ := client.Solve(ctx, &tasks.ReCaptchaV2Task{
-    WebsiteURL: "https://example.com",
-    WebsiteKey: "6Le-wvkSAAAAAPBMRTvw0Q4Muexq9bi0DJwx_mJ-",
-})
+import (
+    "context"
+    "fmt"
+    "io"
+    "log"
+    "net/http"
+    "net/url"
+    "strings"
+    "time"
+
+    "github.com/aarock1234/unicap/internal/providers/capsolver"
+    "github.com/aarock1234/unicap/pkg/upicap"
+    "github.com/aarock1234/unicap/pkg/upicap/tasks"
+)
+
+func main() {
+    // Initialize the provider, in this case CapSolver, with your API key
+    provider, err := capsolver.NewCapSolverProvider("YOUR_API_KEY")
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Create a client with the provider
+    client, err := upicap.NewClient(provider)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Set up a context with timeout for the captcha solving operation
+    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+    defer cancel()
+
+    // Solve the ReCaptcha V2 challenge
+    // This will automatically poll until the solution is ready
+    solution, err := client.Solve(ctx, &tasks.ReCaptchaV2Task{
+        WebsiteURL: "https://www.google.com/recaptcha/api2/demo",
+        WebsiteKey: "6Le-wvkSAAAAAPBMRTvw0Q4Muexq9bi0DJwx_mJ-",
+    })
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    fmt.Printf("Token: %s\n", solution.Token)
+
+    // Verify the token by submitting it to the demo page
+    data := url.Values{
+        "g-recaptcha-response": {solution.Token},
+    }
+
+    // Create a POST request to verify the token
+    req, err := http.NewRequestWithContext(ctx, "POST", "https://www.google.com/recaptcha/api2/demo", strings.NewReader(data.Encode()))
+    if err != nil {
+        log.Fatal(err)
+    }
+    req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+    // Send the verification request
+    resp, err := http.DefaultClient.Do(req)
+    if err != nil {
+        log.Fatal(err)
+    }
+    defer resp.Body.Close()
+
+    // Read the response body
+    body, err := io.ReadAll(resp.Body)
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    // Expected output: "Verification Success... Hooray!"
+    fmt.Printf("Verification response: %s\n", string(body))
+}
 ```
 
 ## Features
@@ -20,34 +87,26 @@ solution, _ := client.Solve(ctx, &tasks.ReCaptchaV2Task{
 - **Proxy support**: Optional for all task types
 - **Extensible**: Create custom providers easily
 
-## Supported Providers
+## Supported Providers & Captcha Types
 
-| Provider    | Status       |
-| ----------- | ------------ |
-| CapSolver   | Full support |
-| 2Captcha    | Full support |
-| AntiCaptcha | Full support |
-
-## Supported Captcha Types
-
-| Type                 | CapSolver | 2Captcha | AntiCaptcha |
-| -------------------- | --------- | -------- | ----------- |
-| ReCaptcha V2         | ✓         | ✓        | ✓           |
-| ReCaptcha V3         | ✓         | ✓        | ✓           |
-| ReCaptcha Enterprise | ✓         | ✓        | ✓           |
-| hCaptcha             | ✓         | ✓        | ✓           |
-| FunCaptcha           | ✓         | ✓        | ✓           |
-| Turnstile            | ✓         | ✓        | ✓           |
-| GeeTest V3           | ✓         | ✓        | ✓           |
-| GeeTest V4           | ✓         | ✓        | ✓           |
-| Cloudflare Challenge | ✓         | -        | -           |
-| DataDome             | ✓         | ✓        | -           |
-| Image to Text        | ✓         | ✓        | ✓           |
+| Type/Provider        | [CapSolver](https://capsolver.com/) | [2Captcha](https://2captcha.com/) | [AntiCaptcha](https://anti-captcha.com/) |
+| -------------------- | ----------------------------------- | --------------------------------- | ---------------------------------------- |
+| Image to Text        | ✓                                   | ✓                                 | ✓                                        |
+| ReCaptcha V2         | ✓                                   | ✓                                 | ✓                                        |
+| ReCaptcha V3         | ✓                                   | ✓                                 | ✓                                        |
+| ReCaptcha Enterprise | ✓                                   | ✓                                 | ✓                                        |
+| hCaptcha             | ✓                                   | ✓                                 | ✓                                        |
+| FunCaptcha           | ✓                                   | ✓                                 | ✓                                        |
+| Turnstile            | ✓                                   | ✓                                 | ✓                                        |
+| GeeTest V3           | ✓                                   | ✓                                 | ✓                                        |
+| GeeTest V4           | ✓                                   | ✓                                 | ✓                                        |
+| Cloudflare Challenge | ✓                                   | -                                 | -                                        |
+| DataDome             | ✓                                   | ✓                                 | -                                        |
 
 ## Installation
 
 ```bash
-go get upicap
+go get -u github.com/aarock1234/unicap
 ```
 
 ## Quick Start
@@ -55,19 +114,26 @@ go get upicap
 ### Synchronous (auto-polling)
 
 ```go
-import (
-    "upicap/internal/providers/capsolver"
-    "upicap/pkg/upicap"
-    "upicap/pkg/upicap/tasks"
-)
+provider, err := capsolver.NewCapSolverProvider("API_KEY")
+if err != nil {
+    log.Fatal(err)
+}
 
-provider, _ := capsolver.NewCapSolverProvider("API_KEY")
-client, _ := upicap.NewClient(provider)
+client, err := upicap.NewClient(provider)
+if err != nil {
+    log.Fatal(err)
+}
+
+ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+defer cancel()
 
 solution, err := client.Solve(ctx, &tasks.ReCaptchaV2Task{
-    WebsiteURL: "https://example.com",
+    WebsiteURL: "https://www.google.com/recaptcha/api2/demo",
     WebsiteKey: "6Le-wvkSAAAAAPBMRTvw0Q4Muexq9bi0DJwx_mJ-",
 })
+if err != nil {
+    log.Fatal(err)
+}
 
 fmt.Println(solution.Token)
 ```
@@ -75,16 +141,28 @@ fmt.Println(solution.Token)
 ### Asynchronous (manual control)
 
 ```go
-taskID, _ := client.CreateTask(ctx, task)
+taskID, err := client.CreateTask(ctx, task)
+if err != nil {
+    log.Fatal(err)
+}
+
+fmt.Printf("Task ID: %s\n", taskID)
 
 // Do other work...
+time.Sleep(10 * time.Second)
 
-result, _ := client.GetTaskResult(ctx, taskID)
+result, err := client.GetTaskResult(ctx, taskID)
+if err != nil {
+    log.Fatal(err)
+}
+
 switch result.Status {
 case upicap.TaskStatusReady:
     fmt.Println(result.Solution.Token)
 case upicap.TaskStatusProcessing:
-    // Check again later
+    fmt.Println("Still processing, check again later")
+case upicap.TaskStatusFailed:
+    log.Printf("Task failed: %v", result.Error)
 }
 ```
 
@@ -107,17 +185,29 @@ task := &tasks.ReCaptchaV2Task{
 ### Multi-Provider Failover
 
 ```go
-providers := []upicap.Provider{
-    mustProvider(capsolver.NewCapSolverProvider("PRIMARY_KEY")),
-    mustProvider(twocaptcha.NewTwoCaptchaProvider("BACKUP_KEY")),
+providers := []upicap.Provider{}
+
+if p, err := capsolver.NewCapSolverProvider("PRIMARY_KEY"); err == nil {
+    providers = append(providers, p)
+}
+if p, err := twocaptcha.NewTwoCaptchaProvider("BACKUP_KEY"); err == nil {
+    providers = append(providers, p)
 }
 
 for _, provider := range providers {
-    client, _ := upicap.NewClient(provider)
-    if solution, err := client.Solve(ctx, task); err == nil {
-        fmt.Printf("solved by %s\n", provider.Name())
-        break
+    client, err := upicap.NewClient(provider)
+    if err != nil {
+        continue
     }
+
+    solution, err := client.Solve(ctx, task)
+    if err != nil {
+        log.Printf("provider %s failed: %v", provider.Name(), err)
+        continue
+    }
+
+    fmt.Printf("Solved by %s: %s\n", provider.Name(), solution.Token)
+    break
 }
 ```
 
@@ -340,23 +430,8 @@ if err != nil {
 }
 ```
 
-## Architecture
-
-```
-upicap/
-├── pkg/upicap/              # Public API
-│   ├── client.go            # Main client
-│   ├── provider.go          # Provider interface
-│   ├── task.go              # Task types
-│   ├── provider_helpers.go  # Helpers for custom providers
-│   └── tasks/               # Task implementations
-├── internal/providers/      # Provider implementations
-│   ├── capsolver/
-│   ├── twocaptcha/
-│   └── anticaptcha/
-└── examples/                # Examples
-```
-
 ## License
 
-MIT
+Elastic License 2.0
+
+Free to use, cannot resell as a service. See [LICENSE](LICENSE) for details.

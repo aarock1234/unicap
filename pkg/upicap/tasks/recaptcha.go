@@ -9,12 +9,17 @@ import (
 
 // ReCaptchaV2Task represents a ReCaptcha V2 solving task
 type ReCaptchaV2Task struct {
-	WebsiteURL  string
-	WebsiteKey  string
-	IsInvisible bool
-	DataS       string
-	PageAction  string
-	Proxy       *upicap.Proxy
+	WebsiteURL        string
+	WebsiteKey        string
+	IsInvisible       bool
+	PageAction        string
+	DataS             string
+	EnterprisePayload map[string]any
+	IsSession         bool
+	APIDomain         string
+	UserAgent         string
+	Cookies           string
+	Proxy             *upicap.Proxy
 }
 
 func (t *ReCaptchaV2Task) Type() upicap.TaskType {
@@ -38,11 +43,15 @@ func (t *ReCaptchaV2Task) Validate() error {
 
 // ReCaptchaV3Task represents a ReCaptcha V3 solving task
 type ReCaptchaV3Task struct {
-	WebsiteURL string
-	WebsiteKey string
-	PageAction string
-	MinScore   float64
-	Proxy      *upicap.Proxy
+	WebsiteURL        string
+	WebsiteKey        string
+	PageAction        string
+	MinScore          float64
+	EnterprisePayload map[string]any
+	IsSession         bool
+	APIDomain         string
+	IsEnterprise      bool
+	Proxy             *upicap.Proxy
 }
 
 func (t *ReCaptchaV3Task) Type() upicap.TaskType {
@@ -69,12 +78,15 @@ func (t *ReCaptchaV3Task) Validate() error {
 
 // ReCaptchaV2EnterpriseTask represents a ReCaptcha V2 Enterprise solving task
 type ReCaptchaV2EnterpriseTask struct {
-	WebsiteURL     string
-	WebsiteKey     string
-	EnterpriseData map[string]any
-	IsInvisible    bool
-	ApiDomain      string
-	Proxy          *upicap.Proxy
+	WebsiteURL        string
+	WebsiteKey        string
+	IsInvisible       bool
+	PageAction        string
+	DataS             string
+	EnterprisePayload map[string]any
+	IsSession         bool
+	APIDomain         string
+	Proxy             *upicap.Proxy
 }
 
 func (t *ReCaptchaV2EnterpriseTask) Type() upicap.TaskType {
@@ -98,13 +110,14 @@ func (t *ReCaptchaV2EnterpriseTask) Validate() error {
 
 // ReCaptchaV3EnterpriseTask represents a ReCaptcha V3 Enterprise solving task
 type ReCaptchaV3EnterpriseTask struct {
-	WebsiteURL     string
-	WebsiteKey     string
-	PageAction     string
-	EnterpriseData map[string]any
-	MinScore       float64
-	ApiDomain      string
-	Proxy          *upicap.Proxy
+	WebsiteURL        string
+	WebsiteKey        string
+	PageAction        string
+	MinScore          float64
+	EnterprisePayload map[string]any
+	IsSession         bool
+	APIDomain         string
+	Proxy             *upicap.Proxy
 }
 
 func (t *ReCaptchaV3EnterpriseTask) Type() upicap.TaskType {

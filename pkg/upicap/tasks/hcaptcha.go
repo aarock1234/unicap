@@ -13,6 +13,8 @@ type HCaptchaTask struct {
 	WebsiteKey     string
 	IsInvisible    bool
 	EnterpriseData map[string]any
+	UserAgent      string
+	Cookies        string
 	Proxy          *upicap.Proxy
 }
 

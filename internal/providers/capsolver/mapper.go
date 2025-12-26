@@ -8,60 +8,59 @@ import (
 )
 
 // Task types for CapSolver API
-type capsolverReCaptchaV2Task struct {
+
+// Base proxy fields for all tasks
+type capsolverProxyFields struct {
+	ProxyType     string `json:"proxyType,omitempty"`
+	ProxyAddress  string `json:"proxyAddress,omitempty"`
+	ProxyPort     int    `json:"proxyPort,omitempty"`
+	ProxyLogin    string `json:"proxyLogin,omitempty"`
+	ProxyPassword string `json:"proxyPassword,omitempty"`
+}
+
+// Base ReCaptcha fields
+type capsolverReCaptchaV2Base struct {
 	Type                string `json:"type"`
 	WebsiteURL          string `json:"websiteURL"`
 	WebsiteKey          string `json:"websiteKey"`
 	IsInvisible         bool   `json:"isInvisible,omitempty"`
-	RecaptchaDataSValue string `json:"recaptchaDataSValue,omitempty"`
 	PageAction          string `json:"pageAction,omitempty"`
-	ProxyType           string `json:"proxyType,omitempty"`
-	ProxyAddress        string `json:"proxyAddress,omitempty"`
-	ProxyPort           int    `json:"proxyPort,omitempty"`
-	ProxyLogin          string `json:"proxyLogin,omitempty"`
-	ProxyPassword       string `json:"proxyPassword,omitempty"`
+	RecaptchaDataSValue string `json:"recaptchaDataSValue,omitempty"`
+	IsSession           bool   `json:"isSession,omitempty"`
+	ApiDomain           string `json:"apiDomain,omitempty"`
 }
 
-type capsolverReCaptchaV3Task struct {
-	Type          string  `json:"type"`
-	WebsiteURL    string  `json:"websiteURL"`
-	WebsiteKey    string  `json:"websiteKey"`
-	PageAction    string  `json:"pageAction,omitempty"`
-	MinScore      float64 `json:"minScore,omitempty"`
-	ProxyType     string  `json:"proxyType,omitempty"`
-	ProxyAddress  string  `json:"proxyAddress,omitempty"`
-	ProxyPort     int     `json:"proxyPort,omitempty"`
-	ProxyLogin    string  `json:"proxyLogin,omitempty"`
-	ProxyPassword string  `json:"proxyPassword,omitempty"`
+type capsolverReCaptchaV2Task struct {
+	capsolverReCaptchaV2Base
+	EnterprisePayload map[string]any `json:"enterprisePayload,omitempty"`
+	capsolverProxyFields
 }
 
 type capsolverReCaptchaV2EnterpriseTask struct {
-	Type              string         `json:"type"`
-	WebsiteURL        string         `json:"websiteURL"`
-	WebsiteKey        string         `json:"websiteKey"`
-	IsInvisible       bool           `json:"isInvisible,omitempty"`
+	capsolverReCaptchaV2Base
 	EnterprisePayload map[string]any `json:"enterprisePayload,omitempty"`
-	ApiDomain         string         `json:"apiDomain,omitempty"`
-	ProxyType         string         `json:"proxyType,omitempty"`
-	ProxyAddress      string         `json:"proxyAddress,omitempty"`
-	ProxyPort         int            `json:"proxyPort,omitempty"`
-	ProxyLogin        string         `json:"proxyLogin,omitempty"`
-	ProxyPassword     string         `json:"proxyPassword,omitempty"`
+	capsolverProxyFields
+}
+
+type capsolverReCaptchaV3Base struct {
+	Type       string `json:"type"`
+	WebsiteURL string `json:"websiteURL"`
+	WebsiteKey string `json:"websiteKey"`
+	PageAction string `json:"pageAction,omitempty"`
+	IsSession  bool   `json:"isSession,omitempty"`
+	ApiDomain  string `json:"apiDomain,omitempty"`
+}
+
+type capsolverReCaptchaV3Task struct {
+	capsolverReCaptchaV3Base
+	EnterprisePayload map[string]any `json:"enterprisePayload,omitempty"`
+	capsolverProxyFields
 }
 
 type capsolverReCaptchaV3EnterpriseTask struct {
-	Type              string         `json:"type"`
-	WebsiteURL        string         `json:"websiteURL"`
-	WebsiteKey        string         `json:"websiteKey"`
-	PageAction        string         `json:"pageAction,omitempty"`
-	MinScore          float64        `json:"minScore,omitempty"`
+	capsolverReCaptchaV3Base
 	EnterprisePayload map[string]any `json:"enterprisePayload,omitempty"`
-	ApiDomain         string         `json:"apiDomain,omitempty"`
-	ProxyType         string         `json:"proxyType,omitempty"`
-	ProxyAddress      string         `json:"proxyAddress,omitempty"`
-	ProxyPort         int            `json:"proxyPort,omitempty"`
-	ProxyLogin        string         `json:"proxyLogin,omitempty"`
-	ProxyPassword     string         `json:"proxyPassword,omitempty"`
+	capsolverProxyFields
 }
 
 type capsolverFunCaptchaTask struct {
@@ -70,23 +69,15 @@ type capsolverFunCaptchaTask struct {
 	WebsitePublicKey         string `json:"websitePublicKey"`
 	FuncaptchaApiJSSubdomain string `json:"funcaptchaApiJSSubdomain,omitempty"`
 	Data                     string `json:"data,omitempty"`
-	ProxyType                string `json:"proxyType,omitempty"`
-	ProxyAddress             string `json:"proxyAddress,omitempty"`
-	ProxyPort                int    `json:"proxyPort,omitempty"`
-	ProxyLogin               string `json:"proxyLogin,omitempty"`
-	ProxyPassword            string `json:"proxyPassword,omitempty"`
+	capsolverProxyFields
 }
 
 type capsolverTurnstileTask struct {
-	Type          string            `json:"type"`
-	WebsiteURL    string            `json:"websiteURL"`
-	WebsiteKey    string            `json:"websiteKey"`
-	Metadata      map[string]string `json:"metadata,omitempty"`
-	ProxyType     string            `json:"proxyType,omitempty"`
-	ProxyAddress  string            `json:"proxyAddress,omitempty"`
-	ProxyPort     int               `json:"proxyPort,omitempty"`
-	ProxyLogin    string            `json:"proxyLogin,omitempty"`
-	ProxyPassword string            `json:"proxyPassword,omitempty"`
+	Type       string            `json:"type"`
+	WebsiteURL string            `json:"websiteURL"`
+	WebsiteKey string            `json:"websiteKey"`
+	Metadata   map[string]string `json:"metadata,omitempty"`
+	capsolverProxyFields
 }
 
 type capsolverGeeTestTask struct {
@@ -95,11 +86,7 @@ type capsolverGeeTestTask struct {
 	GT                        string `json:"gt"`
 	Challenge                 string `json:"challenge"`
 	GeetestApiServerSubdomain string `json:"geetestApiServerSubdomain,omitempty"`
-	ProxyType                 string `json:"proxyType,omitempty"`
-	ProxyAddress              string `json:"proxyAddress,omitempty"`
-	ProxyPort                 int    `json:"proxyPort,omitempty"`
-	ProxyLogin                string `json:"proxyLogin,omitempty"`
-	ProxyPassword             string `json:"proxyPassword,omitempty"`
+	capsolverProxyFields
 }
 
 type capsolverGeeTestV4Task struct {
@@ -107,11 +94,16 @@ type capsolverGeeTestV4Task struct {
 	WebsiteURL                string `json:"websiteURL"`
 	CaptchaID                 string `json:"captchaId"`
 	GeetestApiServerSubdomain string `json:"geetestApiServerSubdomain,omitempty"`
-	ProxyType                 string `json:"proxyType,omitempty"`
-	ProxyAddress              string `json:"proxyAddress,omitempty"`
-	ProxyPort                 int    `json:"proxyPort,omitempty"`
-	ProxyLogin                string `json:"proxyLogin,omitempty"`
-	ProxyPassword             string `json:"proxyPassword,omitempty"`
+	capsolverProxyFields
+}
+
+type capsolverHCaptchaTask struct {
+	Type              string         `json:"type"`
+	WebsiteURL        string         `json:"websiteURL"`
+	WebsiteKey        string         `json:"websiteKey"`
+	IsInvisible       bool           `json:"isInvisible,omitempty"`
+	EnterprisePayload map[string]any `json:"enterprisePayload,omitempty"`
+	capsolverProxyFields
 }
 
 type capsolverCloudflareChallengeTask struct {
@@ -139,6 +131,13 @@ type capsolverDataDomeTask struct {
 	ProxyPassword string `json:"proxyPassword,omitempty"`
 }
 
+type capsolverImageToTextTask struct {
+	Type       string `json:"type"`
+	Body       string `json:"body"`
+	WebsiteURL string `json:"websiteURL,omitempty"`
+	Module     string `json:"module,omitempty"`
+}
+
 // mapToCapSolverTask converts a universal task to CapSolver format
 func mapToCapSolverTask(task upicap.Task) (any, error) {
 	switch t := task.(type) {
@@ -162,29 +161,39 @@ func mapToCapSolverTask(task upicap.Task) (any, error) {
 		return mapGeeTest(t), nil
 	case *tasks.GeeTestV4Task:
 		return mapGeeTestV4(t), nil
+	case *tasks.HCaptchaTask:
+		return mapHCaptcha(t), nil
+	case *tasks.ImageToTextTask:
+		return mapImageToText(t), nil
 	default:
 		return nil, fmt.Errorf("unsupported task type: %s", task.Type())
 	}
 }
 
 func mapReCaptchaV2(task *tasks.ReCaptchaV2Task) capsolverReCaptchaV2Task {
-	taskType := "ReCaptchaV2TaskProxyLess"
 	result := capsolverReCaptchaV2Task{
-		Type:                taskType,
-		WebsiteURL:          task.WebsiteURL,
-		WebsiteKey:          task.WebsiteKey,
-		IsInvisible:         task.IsInvisible,
-		RecaptchaDataSValue: task.DataS,
-		PageAction:          task.PageAction,
+		capsolverReCaptchaV2Base: capsolverReCaptchaV2Base{
+			Type:                "ReCaptchaV2TaskProxyLess",
+			WebsiteURL:          task.WebsiteURL,
+			WebsiteKey:          task.WebsiteKey,
+			IsInvisible:         task.IsInvisible,
+			PageAction:          task.PageAction,
+			RecaptchaDataSValue: task.DataS,
+			IsSession:           task.IsSession,
+			ApiDomain:           task.APIDomain,
+		},
+		EnterprisePayload: task.EnterprisePayload,
 	}
 
 	if task.Proxy.IsSet() {
 		result.Type = "ReCaptchaV2Task"
-		result.ProxyType = string(task.Proxy.Type)
-		result.ProxyAddress = task.Proxy.Address
-		result.ProxyPort = task.Proxy.Port
-		result.ProxyLogin = task.Proxy.Login
-		result.ProxyPassword = task.Proxy.Password
+		result.capsolverProxyFields = capsolverProxyFields{
+			ProxyType:     string(task.Proxy.Type),
+			ProxyAddress:  task.Proxy.Address,
+			ProxyPort:     task.Proxy.Port,
+			ProxyLogin:    task.Proxy.Login,
+			ProxyPassword: task.Proxy.Password,
+		}
 	}
 
 	return result
@@ -192,20 +201,26 @@ func mapReCaptchaV2(task *tasks.ReCaptchaV2Task) capsolverReCaptchaV2Task {
 
 func mapReCaptchaV3(task *tasks.ReCaptchaV3Task) capsolverReCaptchaV3Task {
 	result := capsolverReCaptchaV3Task{
-		Type:       "ReCaptchaV3TaskProxyLess",
-		WebsiteURL: task.WebsiteURL,
-		WebsiteKey: task.WebsiteKey,
-		PageAction: task.PageAction,
-		MinScore:   task.MinScore,
+		capsolverReCaptchaV3Base: capsolverReCaptchaV3Base{
+			Type:       "ReCaptchaV3TaskProxyLess",
+			WebsiteURL: task.WebsiteURL,
+			WebsiteKey: task.WebsiteKey,
+			PageAction: task.PageAction,
+			IsSession:  task.IsSession,
+			ApiDomain:  task.APIDomain,
+		},
+		EnterprisePayload: task.EnterprisePayload,
 	}
 
 	if task.Proxy.IsSet() {
 		result.Type = "ReCaptchaV3Task"
-		result.ProxyType = string(task.Proxy.Type)
-		result.ProxyAddress = task.Proxy.Address
-		result.ProxyPort = task.Proxy.Port
-		result.ProxyLogin = task.Proxy.Login
-		result.ProxyPassword = task.Proxy.Password
+		result.capsolverProxyFields = capsolverProxyFields{
+			ProxyType:     string(task.Proxy.Type),
+			ProxyAddress:  task.Proxy.Address,
+			ProxyPort:     task.Proxy.Port,
+			ProxyLogin:    task.Proxy.Login,
+			ProxyPassword: task.Proxy.Password,
+		}
 	}
 
 	return result
@@ -213,21 +228,28 @@ func mapReCaptchaV3(task *tasks.ReCaptchaV3Task) capsolverReCaptchaV3Task {
 
 func mapReCaptchaV2Enterprise(task *tasks.ReCaptchaV2EnterpriseTask) capsolverReCaptchaV2EnterpriseTask {
 	result := capsolverReCaptchaV2EnterpriseTask{
-		Type:              "ReCaptchaV2EnterpriseTaskProxyLess",
-		WebsiteURL:        task.WebsiteURL,
-		WebsiteKey:        task.WebsiteKey,
-		IsInvisible:       task.IsInvisible,
-		EnterprisePayload: task.EnterpriseData,
-		ApiDomain:         task.ApiDomain,
+		capsolverReCaptchaV2Base: capsolverReCaptchaV2Base{
+			Type:                "ReCaptchaV2EnterpriseTaskProxyLess",
+			WebsiteURL:          task.WebsiteURL,
+			WebsiteKey:          task.WebsiteKey,
+			IsInvisible:         task.IsInvisible,
+			PageAction:          task.PageAction,
+			RecaptchaDataSValue: task.DataS,
+			IsSession:           task.IsSession,
+			ApiDomain:           task.APIDomain,
+		},
+		EnterprisePayload: task.EnterprisePayload,
 	}
 
 	if task.Proxy.IsSet() {
 		result.Type = "ReCaptchaV2EnterpriseTask"
-		result.ProxyType = string(task.Proxy.Type)
-		result.ProxyAddress = task.Proxy.Address
-		result.ProxyPort = task.Proxy.Port
-		result.ProxyLogin = task.Proxy.Login
-		result.ProxyPassword = task.Proxy.Password
+		result.capsolverProxyFields = capsolverProxyFields{
+			ProxyType:     string(task.Proxy.Type),
+			ProxyAddress:  task.Proxy.Address,
+			ProxyPort:     task.Proxy.Port,
+			ProxyLogin:    task.Proxy.Login,
+			ProxyPassword: task.Proxy.Password,
+		}
 	}
 
 	return result
@@ -235,22 +257,26 @@ func mapReCaptchaV2Enterprise(task *tasks.ReCaptchaV2EnterpriseTask) capsolverRe
 
 func mapReCaptchaV3Enterprise(task *tasks.ReCaptchaV3EnterpriseTask) capsolverReCaptchaV3EnterpriseTask {
 	result := capsolverReCaptchaV3EnterpriseTask{
-		Type:              "ReCaptchaV3EnterpriseTaskProxyLess",
-		WebsiteURL:        task.WebsiteURL,
-		WebsiteKey:        task.WebsiteKey,
-		PageAction:        task.PageAction,
-		MinScore:          task.MinScore,
-		EnterprisePayload: task.EnterpriseData,
-		ApiDomain:         task.ApiDomain,
+		capsolverReCaptchaV3Base: capsolverReCaptchaV3Base{
+			Type:       "ReCaptchaV3EnterpriseTaskProxyLess",
+			WebsiteURL: task.WebsiteURL,
+			WebsiteKey: task.WebsiteKey,
+			PageAction: task.PageAction,
+			IsSession:  task.IsSession,
+			ApiDomain:  task.APIDomain,
+		},
+		EnterprisePayload: task.EnterprisePayload,
 	}
 
 	if task.Proxy.IsSet() {
 		result.Type = "ReCaptchaV3EnterpriseTask"
-		result.ProxyType = string(task.Proxy.Type)
-		result.ProxyAddress = task.Proxy.Address
-		result.ProxyPort = task.Proxy.Port
-		result.ProxyLogin = task.Proxy.Login
-		result.ProxyPassword = task.Proxy.Password
+		result.capsolverProxyFields = capsolverProxyFields{
+			ProxyType:     string(task.Proxy.Type),
+			ProxyAddress:  task.Proxy.Address,
+			ProxyPort:     task.Proxy.Port,
+			ProxyLogin:    task.Proxy.Login,
+			ProxyPassword: task.Proxy.Password,
+		}
 	}
 
 	return result
@@ -267,11 +293,13 @@ func mapFunCaptcha(task *tasks.FunCaptchaTask) capsolverFunCaptchaTask {
 
 	if task.Proxy.IsSet() {
 		result.Type = "FunCaptchaTask"
-		result.ProxyType = string(task.Proxy.Type)
-		result.ProxyAddress = task.Proxy.Address
-		result.ProxyPort = task.Proxy.Port
-		result.ProxyLogin = task.Proxy.Login
-		result.ProxyPassword = task.Proxy.Password
+		result.capsolverProxyFields = capsolverProxyFields{
+			ProxyType:     string(task.Proxy.Type),
+			ProxyAddress:  task.Proxy.Address,
+			ProxyPort:     task.Proxy.Port,
+			ProxyLogin:    task.Proxy.Login,
+			ProxyPassword: task.Proxy.Password,
+		}
 	}
 
 	return result
@@ -296,11 +324,13 @@ func mapTurnstile(task *tasks.TurnstileTask) capsolverTurnstileTask {
 
 	if task.Proxy.IsSet() {
 		result.Type = "AntiTurnstileTask"
-		result.ProxyType = string(task.Proxy.Type)
-		result.ProxyAddress = task.Proxy.Address
-		result.ProxyPort = task.Proxy.Port
-		result.ProxyLogin = task.Proxy.Login
-		result.ProxyPassword = task.Proxy.Password
+		result.capsolverProxyFields = capsolverProxyFields{
+			ProxyType:     string(task.Proxy.Type),
+			ProxyAddress:  task.Proxy.Address,
+			ProxyPort:     task.Proxy.Port,
+			ProxyLogin:    task.Proxy.Login,
+			ProxyPassword: task.Proxy.Password,
+		}
 	}
 
 	return result
@@ -362,11 +392,13 @@ func mapGeeTest(task *tasks.GeeTestTask) capsolverGeeTestTask {
 
 	if task.Proxy.IsSet() {
 		result.Type = "GeeTestTask"
-		result.ProxyType = string(task.Proxy.Type)
-		result.ProxyAddress = task.Proxy.Address
-		result.ProxyPort = task.Proxy.Port
-		result.ProxyLogin = task.Proxy.Login
-		result.ProxyPassword = task.Proxy.Password
+		result.capsolverProxyFields = capsolverProxyFields{
+			ProxyType:     string(task.Proxy.Type),
+			ProxyAddress:  task.Proxy.Address,
+			ProxyPort:     task.Proxy.Port,
+			ProxyLogin:    task.Proxy.Login,
+			ProxyPassword: task.Proxy.Password,
+		}
 	}
 
 	return result
@@ -382,12 +414,46 @@ func mapGeeTestV4(task *tasks.GeeTestV4Task) capsolverGeeTestV4Task {
 
 	if task.Proxy.IsSet() {
 		result.Type = "GeeTestTask"
-		result.ProxyType = string(task.Proxy.Type)
-		result.ProxyAddress = task.Proxy.Address
-		result.ProxyPort = task.Proxy.Port
-		result.ProxyLogin = task.Proxy.Login
-		result.ProxyPassword = task.Proxy.Password
+		result.capsolverProxyFields = capsolverProxyFields{
+			ProxyType:     string(task.Proxy.Type),
+			ProxyAddress:  task.Proxy.Address,
+			ProxyPort:     task.Proxy.Port,
+			ProxyLogin:    task.Proxy.Login,
+			ProxyPassword: task.Proxy.Password,
+		}
 	}
 
 	return result
+}
+
+func mapHCaptcha(task *tasks.HCaptchaTask) capsolverHCaptchaTask {
+	result := capsolverHCaptchaTask{
+		Type:              "HCaptchaTaskProxyLess",
+		WebsiteURL:        task.WebsiteURL,
+		WebsiteKey:        task.WebsiteKey,
+		IsInvisible:       task.IsInvisible,
+		EnterprisePayload: task.EnterpriseData,
+	}
+
+	if task.Proxy.IsSet() {
+		result.Type = "HCaptchaTask"
+		result.capsolverProxyFields = capsolverProxyFields{
+			ProxyType:     string(task.Proxy.Type),
+			ProxyAddress:  task.Proxy.Address,
+			ProxyPort:     task.Proxy.Port,
+			ProxyLogin:    task.Proxy.Login,
+			ProxyPassword: task.Proxy.Password,
+		}
+	}
+
+	return result
+}
+
+func mapImageToText(task *tasks.ImageToTextTask) capsolverImageToTextTask {
+	return capsolverImageToTextTask{
+		Type:       "ImageToTextTask",
+		Body:       task.Body,
+		WebsiteURL: task.WebsiteURL,
+		Module:     task.Module,
+	}
 }

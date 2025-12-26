@@ -36,6 +36,12 @@ func main() {
 
 	exampleSynchronous(client)
 	exampleAsynchronous(client)
+
+	fmt.Println("\nVerify the token with:")
+	fmt.Println("curl 'https://www.google.com/recaptcha/api2/demo' \\")
+	fmt.Println("  -H 'content-type: application/x-www-form-urlencoded' \\")
+	fmt.Println("  --data-raw \"g-recaptcha-response=${TOKEN}\"")
+	fmt.Println("\nExpected: Verification Success... Hooray!")
 }
 
 func exampleSynchronous(client *upicap.Client) {
