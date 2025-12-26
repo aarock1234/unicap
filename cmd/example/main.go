@@ -8,7 +8,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/aarock1234/unicap/internal/providers/capsolver"
+	"github.com/aarock1234/unicap/pkg/providers/capsolver"
 	"github.com/aarock1234/unicap/pkg/upicap"
 	"github.com/aarock1234/unicap/pkg/upicap/tasks"
 

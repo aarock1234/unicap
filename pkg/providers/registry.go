@@ -3,9 +3,9 @@ package providers
 import (
 	"fmt"
 
-	"github.com/aarock1234/unicap/internal/providers/anticaptcha"
-	"github.com/aarock1234/unicap/internal/providers/capsolver"
-	"github.com/aarock1234/unicap/internal/providers/twocaptcha"
+	"github.com/aarock1234/unicap/pkg/providers/anticaptcha"
+	"github.com/aarock1234/unicap/pkg/providers/capsolver"
+	"github.com/aarock1234/unicap/pkg/providers/twocaptcha"
 	"github.com/aarock1234/unicap/pkg/upicap"
 )
 
