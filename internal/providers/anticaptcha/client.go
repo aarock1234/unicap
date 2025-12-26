@@ -1,0 +1,187 @@
+package anticaptcha
+
+import (
+	"context"
+	"fmt"
+	"io"
+	"log/slog"
+	"net/http"
+	"time"
+
+	"upicap/pkg/upicap"
+)
+
+// anticaptchaClient implements the Provider interface
+type anticaptchaClient struct {
+	apiKey string
+	client *upicap.BaseHTTPClient
+	errors *upicap.ErrorMapper
+}
+
+// ProviderOption configures a provider
+type ProviderOption func(*anticaptchaClient)
+
+// WithHTTPClient sets a custom HTTP client
+func WithHTTPClient(client *http.Client) ProviderOption {
+	return func(c *anticaptchaClient) {
+		c.client.HTTPClient = client
+	}
+}
+
+// WithBaseURL sets a custom base URL (for testing)
+func WithBaseURL(url string) ProviderOption {
+	return func(c *anticaptchaClient) {
+		c.client.BaseURL = url
+	}
+}
+
+// WithLogger sets a custom logger
+func WithLogger(logger *slog.Logger) ProviderOption {
+	return func(c *anticaptchaClient) {
+		c.client.Logger = logger
+	}
+}
+
+// NewAntiCaptchaProvider creates an AntiCaptcha provider
+func NewAntiCaptchaProvider(apiKey string, opts ...ProviderOption) (upicap.Provider, error) {
+	if apiKey == "" {
+		return nil, fmt.Errorf("api key: %w", upicap.ErrInvalidAPIKey)
+	}
+
+	c := &anticaptchaClient{
+		apiKey: apiKey,
+		client: &upicap.BaseHTTPClient{
+			HTTPClient: &http.Client{Timeout: 30 * time.Second},
+			Logger:     slog.New(slog.NewTextHandler(io.Discard, nil)),
+			BaseURL:    "https://api.anti-captcha.com",
+		},
+		errors: upicap.StandardErrorMapper(
+			"anticaptcha",
+			[]string{"ERROR_KEY_DOES_NOT_EXIST", "ERROR_WRONG_USER_KEY"},
+			[]string{"ERROR_ZERO_BALANCE", "ERROR_NO_SLOT_AVAILABLE"},
+			[]string{"ERROR_TASK_ABSENT"},
+			[]string{"ERROR_WRONG_TASK_DATA"},
+		),
+	}
+
+	for _, opt := range opts {
+		opt(c)
+	}
+
+	return c, nil
+}
+
+func (c *anticaptchaClient) CreateTask(ctx context.Context, task upicap.Task) (string, error) {
+	anticaptchaTask, err := mapToAntiCaptchaTask(task)
+	if err != nil {
+		return "", fmt.Errorf("mapping task: %w", err)
+	}
+
+	req := createTaskRequest{
+		ClientKey: c.apiKey,
+		Task:      anticaptchaTask,
+	}
+
+	var resp createTaskResponse
+	if err := c.client.DoJSON(ctx, "/createTask", req, &resp); err != nil {
+		return "", err
+	}
+
+	if resp.ErrorID != 0 {
+		return "", c.errors.MapError(resp.ErrorCode, resp.ErrorDescription)
+	}
+
+	c.client.Logger.InfoContext(ctx, "task created",
+		slog.Int("task_id", resp.TaskID),
+		slog.String("task_type", string(task.Type())),
+	)
+
+	return fmt.Sprintf("%d", resp.TaskID), nil
+}
+
+func (c *anticaptchaClient) GetTaskResult(ctx context.Context, taskID string) (*upicap.TaskResult, error) {
+	req := getTaskResultRequest{
+		ClientKey: c.apiKey,
+		TaskID:    taskID,
+	}
+
+	var resp getTaskResultResponse
+	if err := c.client.DoJSON(ctx, "/getTaskResult", req, &resp); err != nil {
+		return nil, err
+	}
+
+	if resp.ErrorID != 0 {
+		return &upicap.TaskResult{
+			Status: upicap.TaskStatusFailed,
+			Error: &upicap.Error{
+				Code:     resp.ErrorCode,
+				Message:  resp.ErrorDescription,
+				Provider: "anticaptcha",
+			},
+		}, nil
+	}
+
+	return &upicap.TaskResult{
+		Status:   mapStatus(resp.Status),
+		Solution: mapSolution(resp.Solution),
+	}, nil
+}
+
+func (c *anticaptchaClient) Name() string {
+	return "anticaptcha"
+}
+
+func mapStatus(status string) upicap.TaskStatus {
+	switch status {
+	case "processing":
+		return upicap.TaskStatusProcessing
+	case "ready":
+		return upicap.TaskStatusReady
+	default:
+		return upicap.TaskStatusPending
+	}
+}
+
+func mapSolution(solution map[string]any) upicap.Solution {
+	sol := upicap.Solution{
+		Extra: solution,
+	}
+
+	if token, ok := solution["gRecaptchaResponse"].(string); ok {
+		sol.Token = token
+	} else if token, ok := solution["token"].(string); ok {
+		sol.Token = token
+	}
+
+	if text, ok := solution["text"].(string); ok {
+		sol.Text = text
+	}
+
+	return sol
+}
+
+// Request/Response types
+type createTaskRequest struct {
+	ClientKey string `json:"clientKey"`
+	Task      any    `json:"task"`
+}
+
+type createTaskResponse struct {
+	ErrorID          int    `json:"errorId"`
+	ErrorCode        string `json:"errorCode,omitempty"`
+	ErrorDescription string `json:"errorDescription,omitempty"`
+	TaskID           int    `json:"taskId,omitempty"`
+}
+
+type getTaskResultRequest struct {
+	ClientKey string `json:"clientKey"`
+	TaskID    string `json:"taskId"`
+}
+
+type getTaskResultResponse struct {
+	ErrorID          int            `json:"errorId"`
+	ErrorCode        string         `json:"errorCode,omitempty"`
+	ErrorDescription string         `json:"errorDescription,omitempty"`
+	Status           string         `json:"status,omitempty"`
+	Solution         map[string]any `json:"solution,omitempty"`
+}
