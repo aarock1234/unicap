@@ -1,3 +1,4 @@
+// Package main demonstrates implementing a custom provider for unicap.
 package main
 
 import (
@@ -6,17 +7,19 @@ import (
 	"io"
 	"log/slog"
 	"net/http"
+	"os"
 	"time"
 
-	"github.com/aarock1234/unicap/unicap"
-	"github.com/aarock1234/unicap/unicap/tasks"
+	"github.com/aarock1234/unicap"
+	"github.com/aarock1234/unicap/internal/providerutil"
+	"github.com/aarock1234/unicap/tasks"
 )
 
 // customProvider implements the unicap.Provider interface
 type customProvider struct {
 	apiKey string
-	client *unicap.BaseHTTPClient
-	errors *unicap.ErrorMapper
+	client *providerutil.HTTPClient
+	errors *providerutil.ErrorMapper
 }
 
 // NewCustomProvider creates a new custom provider
@@ -27,12 +30,12 @@ func NewCustomProvider(apiKey string) (unicap.Provider, error) {
 
 	return &customProvider{
 		apiKey: apiKey,
-		client: &unicap.BaseHTTPClient{
+		client: &providerutil.HTTPClient{
 			HTTPClient: &http.Client{Timeout: 30 * time.Second},
 			Logger:     slog.New(slog.NewTextHandler(io.Discard, nil)),
 			BaseURL:    "https://api.customservice.com",
 		},
-		errors: unicap.StandardErrorMapper(
+		errors: providerutil.StandardErrorMapper(
 			"customservice",
 			[]string{"ERROR_INVALID_KEY"},
 			[]string{"ERROR_NO_FUNDS"},
@@ -171,14 +174,21 @@ func mapStatus(status string) unicap.TaskStatus {
 }
 
 func main() {
+	if err := run(); err != nil {
+		slog.Error("custom provider example failed", slog.Any("error", err))
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	provider, err := NewCustomProvider("your-api-key")
 	if err != nil {
-		panic(err)
+		return err
 	}
 
-	client, err := unicap.NewClient(provider)
+	client, err := unicap.New(provider)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	task := &tasks.ReCaptchaV2Task{
@@ -189,8 +199,10 @@ func main() {
 	ctx := context.Background()
 	solution, err := client.Solve(ctx, task)
 	if err != nil {
-		panic(err)
+		return err
 	}
 
 	fmt.Printf("solved: %s\n", solution.Token)
+
+	return nil
 }

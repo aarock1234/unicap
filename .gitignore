@@ -33,5 +33,6 @@ go.work.sum
 .cursor/
 .claude/
 .cursorrules
+.llm/
 AGENTS.md
 CLAUDE.md

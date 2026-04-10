@@ -1,3 +1,4 @@
+// Package main demonstrates the SDK against the CapSolver provider.
 package main
 
 import (
@@ -12,27 +13,27 @@ import (
 	"strings"
 	"time"
 
-	"github.com/aarock1234/unicap/providers/capsolver"
-	"github.com/aarock1234/unicap/unicap"
-	"github.com/aarock1234/unicap/unicap/tasks"
-
-	_ "github.com/aarock1234/unicap/internal/logger"
+	"github.com/aarock1234/unicap"
+	"github.com/aarock1234/unicap/provider/capsolver"
+	"github.com/aarock1234/unicap/tasks"
 )
 
 func main() {
+	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})))
+
 	apiKey := os.Getenv("CAPSOLVER_API_KEY")
 	if apiKey == "" {
 		slog.Error("CAPSOLVER_API_KEY environment variable is required")
 		os.Exit(1)
 	}
 
-	provider, err := capsolver.NewCapSolverProvider(apiKey)
+	provider, err := capsolver.New(apiKey)
 	if err != nil {
 		slog.Error("failed to create provider", slog.Any("error", err))
 		os.Exit(1)
 	}
 
-	client, err := unicap.NewClient(
+	client, err := unicap.New(
 		provider,
 		unicap.WithLogger(slog.Default()),
 	)
@@ -128,7 +129,7 @@ func verifyReCaptchaV2(ctx context.Context, token string) error {
 	if err != nil {
 		return fmt.Errorf("sending request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	body, err := io.ReadAll(resp.Body)
 	if err != nil {
@@ -175,7 +176,7 @@ func verifyReCaptchaV3(ctx context.Context, token string) error {
 	if err != nil {
 		return fmt.Errorf("sending request: %w", err)
 	}
-	defer resp.Body.Close()
+	defer func() { _ = resp.Body.Close() }()
 
 	var verifyResponse verifyReCaptchaV3Response
 	if err := json.NewDecoder(resp.Body).Decode(&verifyResponse); err != nil {

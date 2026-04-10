@@ -19,20 +19,20 @@ import (
     "strings"
     "time"
 
-    "github.com/aarock1234/unicap/providers/capsolver"
-    "github.com/aarock1234/unicap/unicap"
-    "github.com/aarock1234/unicap/unicap/tasks"
+    "github.com/aarock1234/unicap"
+    "github.com/aarock1234/unicap/provider/capsolver"
+    "github.com/aarock1234/unicap/tasks"
 )
 
 func main() {
     // Initialize the provider, in this case CapSolver, with your API key
-    provider, err := capsolver.NewCapSolverProvider("YOUR_API_KEY")
+    provider, err := capsolver.New("YOUR_API_KEY")
     if err != nil {
         log.Fatal(err)
     }
 
     // Create a client with the provider
-    client, err := unicap.NewClient(provider)
+    client, err := unicap.New(provider)
     if err != nil {
         log.Fatal(err)
     }
@@ -70,7 +70,7 @@ func main() {
     if err != nil {
         log.Fatal(err)
     }
-    defer resp.Body.Close()
+    defer func() { _ = resp.Body.Close() }()
 
     // Read the response body
     body, err := io.ReadAll(resp.Body)
@@ -110,7 +110,7 @@ func main() {
 ## Installation
 
 ```bash
-go get -u unicap
+go get github.com/aarock1234/unicap
 ```
 
 ## Quick Start
@@ -118,12 +118,12 @@ go get -u unicap
 ### Synchronous (auto-polling)
 
 ```go
-provider, err := capsolver.NewCapSolverProvider("API_KEY")
+provider, err := capsolver.New("API_KEY")
 if err != nil {
     log.Fatal(err)
 }
 
-client, err := unicap.NewClient(provider)
+client, err := unicap.New(provider)
 if err != nil {
     log.Fatal(err)
 }
@@ -191,15 +191,15 @@ task := &tasks.ReCaptchaV2Task{
 ```go
 providers := []unicap.Provider{}
 
-if p, err := capsolver.NewCapSolverProvider("PRIMARY_KEY"); err == nil {
+if p, err := capsolver.New("PRIMARY_KEY"); err == nil {
     providers = append(providers, p)
 }
-if p, err := twocaptcha.NewTwoCaptchaProvider("BACKUP_KEY"); err == nil {
+if p, err := twocaptcha.New("BACKUP_KEY"); err == nil {
     providers = append(providers, p)
 }
 
 for _, provider := range providers {
-    client, err := unicap.NewClient(provider)
+    client, err := unicap.New(provider)
     if err != nil {
         continue
     }
@@ -340,46 +340,25 @@ type Provider interface {
 }
 ```
 
-Use the built-in helpers:
+Build your own transport and mapping logic inside the provider implementation:
 
 ```go
 type customProvider struct {
     apiKey string
-    client *unicap.BaseHTTPClient
-    errors *unicap.ErrorMapper
+    client *http.Client
 }
 
 func NewCustomProvider(apiKey string) (unicap.Provider, error) {
     return &customProvider{
         apiKey: apiKey,
-        client: &unicap.BaseHTTPClient{
-            HTTPClient: &http.Client{Timeout: 30 * time.Second},
-            Logger:     slog.New(slog.NewTextHandler(io.Discard, nil)),
-            BaseURL:    "https://api.yourservice.com",
-        },
-        errors: unicap.StandardErrorMapper(
-            "yourservice",
-            []string{"INVALID_KEY"},
-            []string{"NO_FUNDS"},
-            []string{"NOT_FOUND"},
-            []string{"BAD_REQUEST"},
-        ),
+        client: &http.Client{Timeout: 30 * time.Second},
     }, nil
 }
 
 func (p *customProvider) CreateTask(ctx context.Context, task unicap.Task) (string, error) {
-    req := createTaskRequest{APIKey: p.apiKey, Task: mapTask(task)}
-    var resp createTaskResponse
-
-    if err := p.client.DoJSON(ctx, "/create", req, &resp); err != nil {
-        return "", err
-    }
-
-    if resp.Error != "" {
-        return "", p.errors.MapError(resp.ErrorCode, resp.Error)
-    }
-
-    return resp.TaskID, nil
+    // translate the SDK task into your provider's wire format,
+    // send the request, then map the response into a task ID.
+    return "", nil
 }
 ```
 
@@ -394,7 +373,7 @@ logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
     Level: slog.LevelDebug,
 }))
 
-client, _ := unicap.NewClient(
+client, _ := unicap.New(
     provider,
     unicap.WithLogger(logger),
 )
@@ -410,7 +389,7 @@ poller := unicap.NewPoller(provider, unicap.PollerConfig{
     Multiplier:      2.0,
 })
 
-client, _ := unicap.NewClient(
+client, _ := unicap.New(
     provider,
     unicap.WithPoller(poller),
 )

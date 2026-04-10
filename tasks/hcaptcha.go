@@ -1,0 +1,34 @@
+package tasks
+
+import (
+	"fmt"
+
+	"github.com/aarock1234/unicap"
+)
+
+// HCaptchaTask represents an hCaptcha solving task
+type HCaptchaTask struct {
+	WebsiteURL     string
+	WebsiteKey     string
+	IsInvisible    bool
+	EnterpriseData map[string]any
+	UserAgent      string
+	Cookies        string
+	Proxy          *unicap.Proxy
+}
+
+// Type returns the SDK task type identifier.
+func (t *HCaptchaTask) Type() unicap.TaskType {
+	return unicap.TaskTypeHCaptcha
+}
+
+// Validate ensures required fields are present
+func (t *HCaptchaTask) Validate() error {
+	if t.WebsiteURL == "" {
+		return fmt.Errorf("website_url: %w", unicap.ErrInvalidTask)
+	}
+	if t.WebsiteKey == "" {
+		return fmt.Errorf("website_key: %w", unicap.ErrInvalidTask)
+	}
+	return nil
+}
