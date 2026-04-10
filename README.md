@@ -25,16 +25,22 @@ import (
 )
 
 func main() {
+    if err := run(); err != nil {
+        log.Fatal(err)
+    }
+}
+
+func run() error {
     // Initialize the provider, in this case CapSolver, with your API key
     provider, err := capsolver.New("YOUR_API_KEY")
     if err != nil {
-        log.Fatal(err)
+        return err
     }
 
     // Create a client with the provider
     client, err := unicap.New(provider)
     if err != nil {
-        log.Fatal(err)
+        return err
     }
 
     // Set up a context with timeout for the captcha solving operation
@@ -48,7 +54,7 @@ func main() {
         WebsiteKey: "6Le-wvkSAAAAAPBMRTvw0Q4Muexq9bi0DJwx_mJ-",
     })
     if err != nil {
-        log.Fatal(err)
+        return err
     }
 
     fmt.Printf("Token: %s\n", solution.Token)
@@ -61,25 +67,27 @@ func main() {
     // Create a POST request to verify the token
     req, err := http.NewRequestWithContext(ctx, "POST", "https://www.google.com/recaptcha/api2/demo", strings.NewReader(data.Encode()))
     if err != nil {
-        log.Fatal(err)
+        return err
     }
     req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
     // Send the verification request
     resp, err := http.DefaultClient.Do(req)
     if err != nil {
-        log.Fatal(err)
+        return err
     }
     defer func() { _ = resp.Body.Close() }()
 
     // Read the response body
     body, err := io.ReadAll(resp.Body)
     if err != nil {
-        log.Fatal(err)
+        return err
     }
 
     // Expected output: "Verification Success... Hooray!"
     fmt.Printf("Verification response: %s\n", string(body))
+
+    return nil
 }
 ```
 
@@ -110,10 +118,12 @@ func main() {
 ## Installation
 
 ```bash
-go get github.com/aarock1234/unicap
+go get github.com/aarock1234/unicap@latest
 ```
 
 ## Quick Start
+
+The following snippets assume the same imports as the full example above.
 
 ### Synchronous (auto-polling)
 
@@ -145,6 +155,14 @@ fmt.Println(solution.Token)
 ### Asynchronous (manual control)
 
 ```go
+ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+defer cancel()
+
+task := &tasks.ReCaptchaV2Task{
+    WebsiteURL: "https://www.google.com/recaptcha/api2/demo",
+    WebsiteKey: "6Le-wvkSAAAAAPBMRTvw0Q4Muexq9bi0DJwx_mJ-",
+}
+
 taskID, err := client.CreateTask(ctx, task)
 if err != nil {
     log.Fatal(err)
@@ -189,6 +207,14 @@ task := &tasks.ReCaptchaV2Task{
 ### Multi-Provider Failover
 
 ```go
+ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
+defer cancel()
+
+task := &tasks.ReCaptchaV2Task{
+    WebsiteURL: "https://www.google.com/recaptcha/api2/demo",
+    WebsiteKey: "6Le-wvkSAAAAAPBMRTvw0Q4Muexq9bi0DJwx_mJ-",
+}
+
 providers := []unicap.Provider{}
 
 if p, err := capsolver.New("PRIMARY_KEY"); err == nil {
@@ -322,7 +348,7 @@ for _, provider := range providers {
 ```go
 &tasks.ImageToTextTask{
     Body:      "base64-encoded-image",
-    Numeric:   0, // 0=any, 1=numbers only
+    Numeric:   tasks.NumericModeAny,
     MinLength: 4,
     MaxLength: 20,
 }
@@ -330,12 +356,12 @@ for _, provider := range providers {
 
 ## Custom Providers
 
-Implement the `Provider` interface:
+Implement the `unicap.Provider` interface:
 
 ```go
 type Provider interface {
-    CreateTask(ctx context.Context, task Task) (string, error)
-    GetTaskResult(ctx context.Context, taskID string) (*TaskResult, error)
+    CreateTask(ctx context.Context, task unicap.Task) (string, error)
+    GetTaskResult(ctx context.Context, taskID string) (*unicap.TaskResult, error)
     Name() string
 }
 ```
@@ -343,6 +369,8 @@ type Provider interface {
 Build your own transport and mapping logic inside the provider implementation:
 
 ```go
+var _ unicap.Provider = (*customProvider)(nil)
+
 type customProvider struct {
     apiKey string
     client *http.Client
@@ -360,6 +388,15 @@ func (p *customProvider) CreateTask(ctx context.Context, task unicap.Task) (stri
     // send the request, then map the response into a task ID.
     return "", nil
 }
+
+func (p *customProvider) GetTaskResult(ctx context.Context, taskID string) (*unicap.TaskResult, error) {
+    // fetch the provider-specific result and map it into a unicap.TaskResult.
+    return nil, nil
+}
+
+func (p *customProvider) Name() string {
+    return "custom"
+}
 ```
 
 See `examples/custom_provider/` for complete implementation.
@@ -373,10 +410,13 @@ logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
     Level: slog.LevelDebug,
 }))
 
-client, _ := unicap.New(
+client, err := unicap.New(
     provider,
     unicap.WithLogger(logger),
 )
+if err != nil {
+    return err
+}
 ```
 
 ### Custom Polling
@@ -389,10 +429,13 @@ poller := unicap.NewPoller(provider, unicap.PollerConfig{
     Multiplier:      2.0,
 })
 
-client, _ := unicap.New(
+client, err := unicap.New(
     provider,
     unicap.WithPoller(poller),
 )
+if err != nil {
+    return err
+}
 ```
 
 ## Error Handling
