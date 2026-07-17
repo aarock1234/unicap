@@ -3,8 +3,9 @@
 package provider
 
 import (
+	"errors"
 	"fmt"
-	"sort"
+	"slices"
 	"sync"
 
 	"github.com/aarock1234/unicap"
@@ -12,6 +13,9 @@ import (
 	"github.com/aarock1234/unicap/provider/capsolver"
 	"github.com/aarock1234/unicap/provider/twocaptcha"
 )
+
+// ErrUnknownProvider reports that no factory is registered for a provider name.
+var ErrUnknownProvider = errors.New("unknown provider")
 
 // Factory creates a provider instance.
 type Factory func(apiKey string) (unicap.Provider, error)
@@ -47,6 +51,10 @@ func (r *Registry) Register(name string, factory Factory) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
+	if r.factories == nil {
+		r.factories = make(map[string]Factory)
+	}
+
 	r.factories[name] = factory
 }
 
@@ -69,7 +77,7 @@ func (r *Registry) Names() []string {
 	for name := range r.factories {
 		names = append(names, name)
 	}
-	sort.Strings(names)
+	slices.Sort(names)
 
 	return names
 }
@@ -78,7 +86,7 @@ func (r *Registry) Names() []string {
 func (r *Registry) New(name, apiKey string) (unicap.Provider, error) {
 	factory, ok := r.Get(name)
 	if !ok {
-		return nil, fmt.Errorf("unknown provider: %s", name)
+		return nil, fmt.Errorf("%q: %w", name, ErrUnknownProvider)
 	}
 
 	return factory(apiKey)

@@ -1,15 +1,15 @@
 package unicap
 
-// Task represents a captcha solving task
+// Task represents a captcha solving task.
 type Task interface {
-	// Type returns the captcha type identifier
+	// Type returns the captcha type identifier.
 	Type() TaskType
 
 	// Validate ensures the task has the required inputs.
 	Validate() error
 }
 
-// TaskType identifies the kind of captcha
+// TaskType identifies the kind of captcha.
 type TaskType string
 
 const (
@@ -37,4 +37,22 @@ const (
 	TaskTypeGeeTestV4 TaskType = "geetest_v4"
 	// TaskTypeImageToText identifies an image-to-text task.
 	TaskTypeImageToText TaskType = "image_to_text"
+	// TaskTypeAWSWAF identifies an AWS WAF captcha task.
+	TaskTypeAWSWAF TaskType = "aws_waf"
+	// TaskTypeMTCaptcha identifies an MTCaptcha task.
+	TaskTypeMTCaptcha TaskType = "mtcaptcha"
+	// TaskTypeFriendlyCaptcha identifies a Friendly Captcha task.
+	TaskTypeFriendlyCaptcha TaskType = "friendly_captcha"
+	// TaskTypeLemin identifies a Lemin Cropped captcha task.
+	TaskTypeLemin TaskType = "lemin"
+	// TaskTypeCutCaptcha identifies a Cutcaptcha task.
+	TaskTypeCutCaptcha TaskType = "cutcaptcha"
+	// TaskTypeText identifies a text captcha task.
+	TaskTypeText TaskType = "text"
+	// TaskTypeProsopo identifies a Prosopo Procaptcha task.
+	TaskTypeProsopo TaskType = "prosopo"
+	// TaskTypeAltcha identifies an Altcha captcha task.
+	TaskTypeAltcha TaskType = "altcha"
+	// TaskTypeRaw identifies a raw provider-specific passthrough task.
+	TaskTypeRaw TaskType = "raw"
 )

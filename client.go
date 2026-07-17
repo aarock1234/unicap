@@ -9,17 +9,17 @@ import (
 	"log/slog"
 )
 
-// Client is the main interface for solving captchas
+// Client submits captcha tasks to a provider and retrieves their solutions.
 type Client struct {
 	provider Provider
 	logger   *slog.Logger
 	poller   *Poller
 }
 
-// New creates a new captcha solving client.
+// New creates a captcha solving client for the given provider.
 func New(provider Provider, opts ...Option) (*Client, error) {
 	if provider == nil {
-		return nil, fmt.Errorf("provider cannot be nil")
+		return nil, ErrNilProvider
 	}
 
 	c := &Client{
@@ -32,14 +32,19 @@ func New(provider Provider, opts ...Option) (*Client, error) {
 	}
 
 	if c.poller == nil {
-		c.poller = NewPoller(provider, DefaultPollerConfig())
+		c.poller = NewPoller(provider, DefaultPollerConfig(), WithPollerLogger(c.logger))
 	}
 
 	return c, nil
 }
 
-// Solve submits a task and automatically polls for the result (synchronous)
+// Solve submits a task and blocks until the solution is ready, polling the
+// provider automatically.
 func (c *Client) Solve(ctx context.Context, task Task) (*Solution, error) {
+	if task == nil {
+		return nil, fmt.Errorf("task is nil: %w", ErrInvalidTask)
+	}
+
 	if err := task.Validate(); err != nil {
 		return nil, fmt.Errorf("validate task: %w", err)
 	}
@@ -57,14 +62,18 @@ func (c *Client) Solve(ctx context.Context, task Task) (*Solution, error) {
 
 	result, err := c.poller.Poll(ctx, taskID)
 	if err != nil {
-		return nil, fmt.Errorf("polling task %s: %w", taskID, err)
+		return nil, err
 	}
 
 	return &result.Solution, nil
 }
 
-// CreateTask submits a task without polling (asynchronous)
+// CreateTask submits a task without polling and returns its provider task ID.
 func (c *Client) CreateTask(ctx context.Context, task Task) (string, error) {
+	if task == nil {
+		return "", fmt.Errorf("task is nil: %w", ErrInvalidTask)
+	}
+
 	if err := task.Validate(); err != nil {
 		return "", fmt.Errorf("validate task: %w", err)
 	}
@@ -83,7 +92,7 @@ func (c *Client) CreateTask(ctx context.Context, task Task) (string, error) {
 	return taskID, nil
 }
 
-// GetTaskResult retrieves a task result by ID (asynchronous)
+// GetTaskResult retrieves a task result by ID without polling.
 func (c *Client) GetTaskResult(ctx context.Context, taskID string) (*TaskResult, error) {
 	result, err := c.provider.GetTaskResult(ctx, taskID)
 	if err != nil {

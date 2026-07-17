@@ -1,18 +1,18 @@
 package unicap
 
-// TaskResult represents the result of a captcha solving task
+// TaskResult represents the result of a captcha solving task.
 type TaskResult struct {
-	// Status indicates the current state of the task
+	// Status indicates the current state of the task.
 	Status TaskStatus
 
-	// Solution contains the captcha solution when ready
+	// Solution contains the captcha solution when ready.
 	Solution Solution
 
-	// Error contains error details if the task failed
+	// Error contains error details if the task failed.
 	Error *Error
 }
 
-// TaskStatus represents the state of a task
+// TaskStatus represents the state of a task.
 type TaskStatus string
 
 const (
@@ -26,22 +26,29 @@ const (
 	TaskStatusFailed TaskStatus = "failed"
 )
 
-// Solution contains the captcha solution data
+// Solution contains the captcha solution data. Which field is populated depends
+// on the captcha type: token-based captchas set Token, cookie-based challenges
+// (DataDome, Cloudflare) set Cookie, image captchas set Text, and coordinate
+// captchas set Coordinates.
 type Solution struct {
-	// Token is the primary solution (for token-based captchas)
+	// Token is the primary solution for token-based captchas.
 	Token string
 
-	// Text is the solution for image-based captchas
+	// Cookie is the solution for cookie-based challenges such as DataDome and
+	// Cloudflare.
+	Cookie string
+
+	// Text is the solution for image-based captchas.
 	Text string
 
-	// Coordinates are for coordinate-based captchas
+	// Coordinates are the solution for coordinate-based captchas.
 	Coordinates []Coordinate
 
-	// Extra holds provider-specific additional data
+	// Extra holds the raw, provider-specific solution payload.
 	Extra map[string]any
 }
 
-// Coordinate represents a point selection
+// Coordinate represents a point selection within an image.
 type Coordinate struct {
 	X int
 	Y int

@@ -1,6 +1,6 @@
 package unicap
 
-// ProxyType represents the type of proxy
+// ProxyType represents the transport type of a proxy.
 type ProxyType string
 
 const (
@@ -14,7 +14,7 @@ const (
 	ProxyTypeSOCKS5 ProxyType = "socks5"
 )
 
-// Proxy contains proxy configuration for captcha solving
+// Proxy holds proxy configuration for captcha solving.
 type Proxy struct {
 	Type     ProxyType
 	Address  string
@@ -23,7 +23,7 @@ type Proxy struct {
 	Password string
 }
 
-// IsSet returns true if the proxy is configured
+// IsSet reports whether the proxy is configured.
 func (p *Proxy) IsSet() bool {
 	return p != nil && p.Address != ""
 }

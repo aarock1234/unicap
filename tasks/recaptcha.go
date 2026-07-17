@@ -1,4 +1,3 @@
-// Package tasks provides the built-in captcha task types supported by the SDK.
 package tasks
 
 import (
@@ -7,7 +6,7 @@ import (
 	"github.com/aarock1234/unicap"
 )
 
-// ReCaptchaV2Task represents a ReCaptcha V2 solving task
+// ReCaptchaV2Task represents a ReCaptcha v2 solving task.
 type ReCaptchaV2Task struct {
 	WebsiteURL        string
 	WebsiteKey        string
@@ -27,18 +26,20 @@ func (t *ReCaptchaV2Task) Type() unicap.TaskType {
 	return unicap.TaskTypeReCaptchaV2
 }
 
-// Validate ensures required fields are present
+// Validate ensures required fields are present.
 func (t *ReCaptchaV2Task) Validate() error {
 	if t.WebsiteURL == "" {
 		return fmt.Errorf("website_url: %w", unicap.ErrInvalidTask)
 	}
+
 	if t.WebsiteKey == "" {
 		return fmt.Errorf("website_key: %w", unicap.ErrInvalidTask)
 	}
+
 	return nil
 }
 
-// ReCaptchaV3Task represents a ReCaptcha V3 solving task
+// ReCaptchaV3Task represents a ReCaptcha v3 solving task.
 type ReCaptchaV3Task struct {
 	WebsiteURL        string
 	WebsiteKey        string
@@ -56,21 +57,25 @@ func (t *ReCaptchaV3Task) Type() unicap.TaskType {
 	return unicap.TaskTypeReCaptchaV3
 }
 
-// Validate ensures required fields are present
+// Validate reports an error if required fields are missing or MinScore is out
+// of range.
 func (t *ReCaptchaV3Task) Validate() error {
 	if t.WebsiteURL == "" {
 		return fmt.Errorf("website_url: %w", unicap.ErrInvalidTask)
 	}
+
 	if t.WebsiteKey == "" {
 		return fmt.Errorf("website_key: %w", unicap.ErrInvalidTask)
 	}
+
 	if t.MinScore < 0 || t.MinScore > 1 {
 		return fmt.Errorf("min_score must be between 0 and 1: %w", unicap.ErrInvalidTask)
 	}
+
 	return nil
 }
 
-// ReCaptchaV2EnterpriseTask represents a ReCaptcha V2 Enterprise solving task
+// ReCaptchaV2EnterpriseTask represents a ReCaptcha v2 Enterprise solving task.
 type ReCaptchaV2EnterpriseTask struct {
 	WebsiteURL        string
 	WebsiteKey        string
@@ -88,18 +93,20 @@ func (t *ReCaptchaV2EnterpriseTask) Type() unicap.TaskType {
 	return unicap.TaskTypeReCaptchaV2Enterprise
 }
 
-// Validate ensures required fields are present
+// Validate ensures required fields are present.
 func (t *ReCaptchaV2EnterpriseTask) Validate() error {
 	if t.WebsiteURL == "" {
 		return fmt.Errorf("website_url: %w", unicap.ErrInvalidTask)
 	}
+
 	if t.WebsiteKey == "" {
 		return fmt.Errorf("website_key: %w", unicap.ErrInvalidTask)
 	}
+
 	return nil
 }
 
-// ReCaptchaV3EnterpriseTask represents a ReCaptcha V3 Enterprise solving task
+// ReCaptchaV3EnterpriseTask represents a ReCaptcha v3 Enterprise solving task.
 type ReCaptchaV3EnterpriseTask struct {
 	WebsiteURL        string
 	WebsiteKey        string
@@ -116,16 +123,20 @@ func (t *ReCaptchaV3EnterpriseTask) Type() unicap.TaskType {
 	return unicap.TaskTypeReCaptchaV3Enterprise
 }
 
-// Validate ensures required fields are present
+// Validate reports an error if required fields are missing or MinScore is out
+// of range.
 func (t *ReCaptchaV3EnterpriseTask) Validate() error {
 	if t.WebsiteURL == "" {
 		return fmt.Errorf("website_url: %w", unicap.ErrInvalidTask)
 	}
+
 	if t.WebsiteKey == "" {
 		return fmt.Errorf("website_key: %w", unicap.ErrInvalidTask)
 	}
+
 	if t.MinScore < 0 || t.MinScore > 1 {
 		return fmt.Errorf("min_score must be between 0 and 1: %w", unicap.ErrInvalidTask)
 	}
+
 	return nil
 }

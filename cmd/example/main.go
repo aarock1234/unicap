@@ -4,6 +4,7 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io"
 	"log/slog"
@@ -19,31 +20,34 @@ import (
 )
 
 func main() {
+	if err := run(); err != nil {
+		slog.Error("fatal error", slog.Any("error", err))
+		os.Exit(1)
+	}
+}
+
+func run() error {
 	slog.SetDefault(slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{Level: slog.LevelDebug})))
 
 	apiKey := os.Getenv("CAPSOLVER_API_KEY")
 	if apiKey == "" {
-		slog.Error("CAPSOLVER_API_KEY environment variable is required")
-		os.Exit(1)
+		return errors.New("capsolver_api_key is required")
 	}
 
 	provider, err := capsolver.New(apiKey)
 	if err != nil {
-		slog.Error("failed to create provider", slog.Any("error", err))
-		os.Exit(1)
+		return fmt.Errorf("creating provider: %w", err)
 	}
 
-	client, err := unicap.New(
-		provider,
-		unicap.WithLogger(slog.Default()),
-	)
+	client, err := unicap.New(provider, unicap.WithLogger(slog.Default()))
 	if err != nil {
-		slog.Error("failed to create client", slog.Any("error", err))
-		os.Exit(1)
+		return fmt.Errorf("creating client: %w", err)
 	}
 
 	exampleSynchronous(client)
 	exampleAsynchronous(client)
+
+	return nil
 }
 
 func exampleSynchronous(client *unicap.Client) {
@@ -119,7 +123,7 @@ func verifyReCaptchaV2(ctx context.Context, token string) error {
 		"g-recaptcha-response": {token},
 	}
 
-	req, err := http.NewRequestWithContext(ctx, "POST", "https://www.google.com/recaptcha/api2/demo", strings.NewReader(data.Encode()))
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, "https://www.google.com/recaptcha/api2/demo", strings.NewReader(data.Encode()))
 	if err != nil {
 		return fmt.Errorf("creating request: %w", err)
 	}
@@ -166,7 +170,7 @@ func verifyReCaptchaV3(ctx context.Context, token string) error {
 
 	verifyURL.RawQuery = data.Encode()
 
-	req, err := http.NewRequestWithContext(ctx, "POST", verifyURL.String(), nil)
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, verifyURL.String(), nil)
 	if err != nil {
 		return fmt.Errorf("creating request: %w", err)
 	}

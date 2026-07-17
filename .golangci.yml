@@ -15,4 +15,4 @@ formatters:
   settings:
     goimports:
       local-prefixes:
-        - ai
+        - github.com/aarock1234/unicap

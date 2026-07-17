@@ -1,58 +1,53 @@
-// Package main demonstrates solving a captcha with a built-in provider.
+// Package main demonstrates solving a captcha with the built-in CapSolver
+// provider.
 package main
 
 import (
 	"context"
 	"fmt"
-	"log"
+	"log/slog"
 	"os"
 	"time"
 
-	"github.com/aarock1234/unicap"
-	// "github.com/aarock1234/unicap/provider/anticaptcha"
-	// "github.com/aarock1234/unicap/provider/capsolver"
-	"github.com/aarock1234/unicap/provider/twocaptcha"
-	"github.com/aarock1234/unicap/tasks"
 	"github.com/joho/godotenv"
+
+	"github.com/aarock1234/unicap"
+	"github.com/aarock1234/unicap/provider/capsolver"
+	"github.com/aarock1234/unicap/tasks"
 )
 
 func main() {
 	if err := run(); err != nil {
-		log.Fatal(err)
+		slog.Error("fatal error", slog.Any("error", err))
+		os.Exit(1)
 	}
-
 }
 
 func run() error {
 	if err := godotenv.Load(); err != nil {
-		return err
+		return fmt.Errorf("loading .env: %w", err)
 	}
 
-	// Initialize the provider, in this case CapSolver, with your API key
-	provider, err := twocaptcha.New(os.Getenv("2CAPTCHA_API_KEY"))
+	provider, err := capsolver.New(os.Getenv("CAPSOLVER_API_KEY"))
 	if err != nil {
-		return err
+		return fmt.Errorf("creating provider: %w", err)
 	}
 
-	// Create a client with the provider
 	client, err := unicap.New(provider)
 	if err != nil {
-		return err
+		return fmt.Errorf("creating client: %w", err)
 	}
 
-	// Set up a context with timeout for the captcha solving operation
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
-	// Solve the ReCaptcha V2 challenge
-	// This will automatically poll until the solution is ready
-	solution, err := client.Solve(ctx, &tasks.ReCaptchaV3EnterpriseTask{
-		WebsiteURL: "https://id.embark.games/id/link?code=SWAZTRGB",
-		WebsiteKey: "6LdHrfonAAAAALPlD3Wn6XJr4IEllwuQDDaMkxfs",
-		MinScore:   0.9,
+	// Solve automatically polls until the solution is ready.
+	solution, err := client.Solve(ctx, &tasks.ReCaptchaV2Task{
+		WebsiteURL: "https://www.google.com/recaptcha/api2/demo",
+		WebsiteKey: "6Le-wvkSAAAAAPBMRTvw0Q4Muexq9bi0DJwx_mJ-",
 	})
 	if err != nil {
-		return err
+		return fmt.Errorf("solving captcha: %w", err)
 	}
 
 	fmt.Printf("token: %s\n", solution.Token)

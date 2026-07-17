@@ -6,23 +6,25 @@ import (
 	"github.com/aarock1234/unicap"
 )
 
-// NumericMode specifies character type constraints for image recognition
+// NumericMode specifies character-type constraints for image recognition. Its
+// values are the wire codes expected by the provider APIs, so they are pinned
+// explicitly rather than derived from iota.
 type NumericMode int
 
 const (
-	// NumericModeAny applies no numeric constraint.
-	NumericModeAny NumericMode = 0 // no preference
+	// NumericModeAny applies no character constraint.
+	NumericModeAny NumericMode = 0
 	// NumericModeNumbersOnly requires only numbers.
-	NumericModeNumbersOnly NumericMode = 1 // only numbers
+	NumericModeNumbersOnly NumericMode = 1
 	// NumericModeLettersOnly requires only letters.
-	NumericModeLettersOnly NumericMode = 2 // only letters
+	NumericModeLettersOnly NumericMode = 2
 	// NumericModeEither requires numbers or letters.
-	NumericModeEither NumericMode = 3 // numbers OR letters
+	NumericModeEither NumericMode = 3
 	// NumericModeBoth requires both numbers and letters.
-	NumericModeBoth NumericMode = 4 // numbers AND letters
+	NumericModeBoth NumericMode = 4
 )
 
-// ImageToTextTask represents an image recognition task
+// ImageToTextTask represents an image recognition task.
 type ImageToTextTask struct {
 	Body            string
 	WebsiteURL      string
@@ -43,10 +45,11 @@ func (t *ImageToTextTask) Type() unicap.TaskType {
 	return unicap.TaskTypeImageToText
 }
 
-// Validate ensures required fields are present
+// Validate ensures required fields are present.
 func (t *ImageToTextTask) Validate() error {
 	if t.Body == "" {
 		return fmt.Errorf("body: %w", unicap.ErrInvalidTask)
 	}
+
 	return nil
 }

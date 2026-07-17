@@ -6,8 +6,8 @@ import (
 	"github.com/aarock1234/unicap"
 )
 
-// CloudflareChallengeTask represents a Cloudflare Challenge solving task
-// This is for the "Just a moment" challenge page, not Turnstile
+// CloudflareChallengeTask represents a Cloudflare challenge solving task. This
+// is for the "Just a moment" challenge page, not Turnstile.
 type CloudflareChallengeTask struct {
 	WebsiteURL string
 	HTML       string
@@ -20,13 +20,15 @@ func (t *CloudflareChallengeTask) Type() unicap.TaskType {
 	return unicap.TaskTypeCloudflareChallenge
 }
 
-// Validate ensures required fields are present
+// Validate reports an error if required fields are missing or no proxy is set.
 func (t *CloudflareChallengeTask) Validate() error {
 	if t.WebsiteURL == "" {
 		return fmt.Errorf("website_url: %w", unicap.ErrInvalidTask)
 	}
+
 	if !t.Proxy.IsSet() {
 		return fmt.Errorf("proxy is required for cloudflare challenge: %w", unicap.ErrInvalidTask)
 	}
+
 	return nil
 }

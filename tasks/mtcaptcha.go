@@ -6,23 +6,20 @@ import (
 	"github.com/aarock1234/unicap"
 )
 
-// TurnstileTask represents a Cloudflare Turnstile solving task.
-type TurnstileTask struct {
+// MTCaptchaTask represents an MTCaptcha solving task.
+type MTCaptchaTask struct {
 	WebsiteURL string
 	WebsiteKey string
-	Action     string
-	CData      string
-	PageData   string
 	Proxy      *unicap.Proxy
 }
 
 // Type returns the SDK task type identifier.
-func (t *TurnstileTask) Type() unicap.TaskType {
-	return unicap.TaskTypeTurnstile
+func (t *MTCaptchaTask) Type() unicap.TaskType {
+	return unicap.TaskTypeMTCaptcha
 }
 
 // Validate ensures required fields are present.
-func (t *TurnstileTask) Validate() error {
+func (t *MTCaptchaTask) Validate() error {
 	if t.WebsiteURL == "" {
 		return fmt.Errorf("website_url: %w", unicap.ErrInvalidTask)
 	}

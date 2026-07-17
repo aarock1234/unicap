@@ -107,13 +107,22 @@ func run() error {
 | ReCaptcha V2         | ✓                                   | ✓                                 | ✓                                        |
 | ReCaptcha V3         | ✓                                   | ✓                                 | ✓                                        |
 | ReCaptcha Enterprise | ✓                                   | ✓                                 | ✓                                        |
-| hCaptcha             | ✓                                   | ✓                                 | ✓                                        |
+| hCaptcha             | ✓                                   | ✓                                 | -                                        |
 | FunCaptcha           | ✓                                   | ✓                                 | ✓                                        |
 | Turnstile            | ✓                                   | ✓                                 | ✓                                        |
 | GeeTest V3           | ✓                                   | ✓                                 | ✓                                        |
 | GeeTest V4           | ✓                                   | ✓                                 | ✓                                        |
 | Cloudflare Challenge | ✓                                   | -                                 | -                                        |
 | DataDome             | ✓                                   | ✓                                 | -                                        |
+| AWS WAF              | ✓                                   | ✓                                 | -                                        |
+| MTCaptcha            | ✓                                   | ✓                                 | -                                        |
+| Friendly Captcha     | -                                   | ✓                                 | ✓                                        |
+| Lemin                | -                                   | ✓                                 | -                                        |
+| Cutcaptcha           | -                                   | ✓                                 | -                                        |
+| Text                 | -                                   | ✓                                 | -                                        |
+| Prosopo              | -                                   | ✓                                 | ✓                                        |
+| Altcha               | -                                   | ✓                                 | -                                        |
+| Raw (passthrough)    | ✓                                   | ✓                                 | ✓                                        |
 
 ## Installation
 
@@ -351,6 +360,104 @@ for _, provider := range providers {
     Numeric:   tasks.NumericModeAny,
     MinLength: 4,
     MaxLength: 20,
+}
+```
+
+### AWS WAF
+
+```go
+&tasks.AWSWAFTask{
+    WebsiteURL: "https://example.com",
+    Key:        "aws-key",
+    IV:         "aws-iv",      // optional
+    Context:    "aws-context", // optional
+    Proxy:      proxy,         // optional
+}
+```
+
+### MTCaptcha
+
+```go
+&tasks.MTCaptchaTask{
+    WebsiteURL: "https://example.com",
+    WebsiteKey: "site-key",
+    Proxy:      proxy, // optional
+}
+```
+
+### Friendly Captcha
+
+```go
+&tasks.FriendlyCaptchaTask{
+    WebsiteURL: "https://example.com",
+    WebsiteKey: "site-key",
+    Proxy:      proxy, // optional
+}
+```
+
+### Lemin
+
+```go
+&tasks.LeminTask{
+    WebsiteURL: "https://example.com",
+    CaptchaID:  "captcha-id",
+    DivID:      "lemin-cropped-captcha",
+    Proxy:      proxy, // optional
+}
+```
+
+### Cutcaptcha
+
+```go
+&tasks.CutCaptchaTask{
+    WebsiteURL: "https://example.com",
+    MiseryKey:  "misery-key",
+    APIKey:     "api-key",
+    Proxy:      proxy, // optional
+}
+```
+
+### Text
+
+```go
+&tasks.TextCaptchaTask{
+    Question: "What is 2 + 2?",
+}
+```
+
+### Prosopo
+
+```go
+&tasks.ProsopoTask{
+    WebsiteURL: "https://example.com",
+    WebsiteKey: "site-key",
+    Proxy:      proxy, // optional
+}
+```
+
+### Altcha
+
+```go
+&tasks.AltchaTask{
+    WebsiteURL:   "https://example.com",
+    ChallengeURL: "https://example.com/captcha/api/altcha/challenge",
+    // or ChallengeJSON: `{"algorithm":"SHA-256",...}`
+    Proxy: proxy, // optional
+}
+```
+
+### Raw (provider passthrough)
+
+For captcha types the SDK does not model directly, submit the provider's own
+task type string and parameters:
+
+```go
+&tasks.RawTask{
+    TaskType: "AntiGateTask",
+    Params: map[string]any{
+        "websiteURL": "https://example.com",
+        "templateName": "Verification code",
+    },
 }
 ```
 

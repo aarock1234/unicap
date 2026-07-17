@@ -6,7 +6,7 @@ import (
 	"github.com/aarock1234/unicap"
 )
 
-// GeeTestTask represents a GeeTest v3 solving task
+// GeeTestTask represents a GeeTest v3 solving task.
 type GeeTestTask struct {
 	WebsiteURL         string
 	GT                 string
@@ -20,21 +20,24 @@ func (t *GeeTestTask) Type() unicap.TaskType {
 	return unicap.TaskTypeGeeTest
 }
 
-// Validate ensures required fields are present
+// Validate ensures required fields are present.
 func (t *GeeTestTask) Validate() error {
 	if t.WebsiteURL == "" {
 		return fmt.Errorf("website_url: %w", unicap.ErrInvalidTask)
 	}
+
 	if t.GT == "" {
 		return fmt.Errorf("gt: %w", unicap.ErrInvalidTask)
 	}
+
 	if t.Challenge == "" {
 		return fmt.Errorf("challenge: %w", unicap.ErrInvalidTask)
 	}
+
 	return nil
 }
 
-// GeeTestV4Task represents a GeeTest v4 solving task
+// GeeTestV4Task represents a GeeTest v4 solving task.
 type GeeTestV4Task struct {
 	WebsiteURL         string
 	CaptchaID          string
@@ -47,13 +50,15 @@ func (t *GeeTestV4Task) Type() unicap.TaskType {
 	return unicap.TaskTypeGeeTestV4
 }
 
-// Validate ensures required fields are present
+// Validate ensures required fields are present.
 func (t *GeeTestV4Task) Validate() error {
 	if t.WebsiteURL == "" {
 		return fmt.Errorf("website_url: %w", unicap.ErrInvalidTask)
 	}
+
 	if t.CaptchaID == "" {
 		return fmt.Errorf("captcha_id: %w", unicap.ErrInvalidTask)
 	}
+
 	return nil
 }

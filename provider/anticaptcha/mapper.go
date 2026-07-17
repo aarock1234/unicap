@@ -4,41 +4,29 @@ import (
 	"fmt"
 
 	"github.com/aarock1234/unicap"
+	"github.com/aarock1234/unicap/internal/solverapi"
 	"github.com/aarock1234/unicap/tasks"
 )
 
-// Task types for AntiCaptcha API
-
-// Base proxy fields for all tasks
-type anticaptchaProxyFields struct {
-	ProxyType     string `json:"proxyType,omitempty"`
-	ProxyAddress  string `json:"proxyAddress,omitempty"`
-	ProxyPort     int    `json:"proxyPort,omitempty"`
-	ProxyLogin    string `json:"proxyLogin,omitempty"`
-	ProxyPassword string `json:"proxyPassword,omitempty"`
-}
-
-type anticaptchaReCaptchaV2Task struct {
+type reCaptchaV2Task struct {
 	Type                string `json:"type"`
 	WebsiteURL          string `json:"websiteURL"`
 	WebsiteKey          string `json:"websiteKey"`
 	IsInvisible         bool   `json:"isInvisible,omitempty"`
 	RecaptchaDataSValue string `json:"recaptchaDataSValue,omitempty"`
-	anticaptchaProxyFields
+	solverapi.ProxyFields
 }
 
-type anticaptchaReCaptchaV3Task struct {
-	Type         string  `json:"type"`
-	WebsiteURL   string  `json:"websiteURL"`
-	WebsiteKey   string  `json:"websiteKey"`
-	PageAction   string  `json:"pageAction,omitempty"`
-	MinScore     float64 `json:"minScore,omitempty"`
-	IsEnterprise bool    `json:"isEnterprise,omitempty"`
-	APIDomain    string  `json:"apiDomain,omitempty"`
-	anticaptchaProxyFields
+type reCaptchaV3Task struct {
+	Type       string  `json:"type"`
+	WebsiteURL string  `json:"websiteURL"`
+	WebsiteKey string  `json:"websiteKey"`
+	PageAction string  `json:"pageAction,omitempty"`
+	MinScore   float64 `json:"minScore,omitempty"`
+	APIDomain  string  `json:"apiDomain,omitempty"`
 }
 
-type anticaptchaReCaptchaV2EnterpriseTask struct {
+type reCaptchaV2EnterpriseTask struct {
 	Type                string         `json:"type"`
 	WebsiteURL          string         `json:"websiteURL"`
 	WebsiteKey          string         `json:"websiteKey"`
@@ -46,10 +34,10 @@ type anticaptchaReCaptchaV2EnterpriseTask struct {
 	RecaptchaDataSValue string         `json:"recaptchaDataSValue,omitempty"`
 	EnterprisePayload   map[string]any `json:"enterprisePayload,omitempty"`
 	APIDomain           string         `json:"apiDomain,omitempty"`
-	anticaptchaProxyFields
+	solverapi.ProxyFields
 }
 
-type anticaptchaReCaptchaV3EnterpriseTask struct {
+type reCaptchaV3EnterpriseTask struct {
 	Type              string         `json:"type"`
 	WebsiteURL        string         `json:"websiteURL"`
 	WebsiteKey        string         `json:"websiteKey"`
@@ -58,53 +46,44 @@ type anticaptchaReCaptchaV3EnterpriseTask struct {
 	EnterprisePayload map[string]any `json:"enterprisePayload,omitempty"`
 	APIDomain         string         `json:"apiDomain,omitempty"`
 	IsEnterprise      bool           `json:"isEnterprise,omitempty"`
-	anticaptchaProxyFields
+	solverapi.ProxyFields
 }
 
-type anticaptchaFunCaptchaTask struct {
+type funCaptchaTask struct {
 	Type                     string `json:"type"`
 	WebsiteURL               string `json:"websiteURL"`
 	WebsitePublicKey         string `json:"websitePublicKey"`
 	FuncaptchaAPIJSSubdomain string `json:"funcaptchaApiJSSubdomain,omitempty"`
 	Data                     string `json:"data,omitempty"`
-	anticaptchaProxyFields
+	solverapi.ProxyFields
 }
 
-type anticaptchaTurnstileTask struct {
+type turnstileTask struct {
 	Type        string `json:"type"`
 	WebsiteURL  string `json:"websiteURL"`
 	WebsiteKey  string `json:"websiteKey"`
 	Action      string `json:"action,omitempty"`
 	CData       string `json:"cData,omitempty"`
 	ChlPageData string `json:"chlPageData,omitempty"`
-	anticaptchaProxyFields
+	solverapi.ProxyFields
 }
 
-type anticaptchaGeeTestTask struct {
-	Type                      string      `json:"type"`
-	WebsiteURL                string      `json:"websiteURL"`
-	GT                        string      `json:"gt,omitempty"`
-	Challenge                 string      `json:"challenge,omitempty"`
-	Version                   int         `json:"version,omitempty"`
-	InitParameters            geetestInit `json:"initParameters,omitempty"`
-	GeetestAPIServerSubdomain string      `json:"geetestApiServerSubdomain,omitempty"`
-	anticaptchaProxyFields
+type geeTestTask struct {
+	Type                      string       `json:"type"`
+	WebsiteURL                string       `json:"websiteURL"`
+	GT                        string       `json:"gt,omitempty"`
+	Challenge                 string       `json:"challenge,omitempty"`
+	Version                   int          `json:"version,omitempty"`
+	InitParameters            *geetestInit `json:"initParameters,omitempty"`
+	GeetestAPIServerSubdomain string       `json:"geetestApiServerSubdomain,omitempty"`
+	solverapi.ProxyFields
 }
 
 type geetestInit struct {
 	CaptchaID string `json:"captcha_id,omitempty"`
 }
 
-type anticaptchaHCaptchaTask struct {
-	Type              string         `json:"type"`
-	WebsiteURL        string         `json:"websiteURL"`
-	WebsiteKey        string         `json:"websiteKey"`
-	IsInvisible       bool           `json:"isInvisible,omitempty"`
-	EnterprisePayload map[string]any `json:"enterprisePayload,omitempty"`
-	anticaptchaProxyFields
-}
-
-type anticaptchaImageToTextTask struct {
+type imageToTextTask struct {
 	Type         string `json:"type"`
 	Body         string `json:"body"`
 	Phrase       bool   `json:"phrase,omitempty"`
@@ -118,8 +97,22 @@ type anticaptchaImageToTextTask struct {
 	LanguagePool string `json:"languagePool,omitempty"`
 }
 
-// mapToAntiCaptchaTask converts a universal task to AntiCaptcha format
-func mapToAntiCaptchaTask(task unicap.Task) (any, error) {
+type friendlyCaptchaTask struct {
+	Type       string `json:"type"`
+	WebsiteURL string `json:"websiteURL"`
+	WebsiteKey string `json:"websiteKey"`
+	solverapi.ProxyFields
+}
+
+type prosopoTask struct {
+	Type       string `json:"type"`
+	WebsiteURL string `json:"websiteURL"`
+	WebsiteKey string `json:"websiteKey"`
+	solverapi.ProxyFields
+}
+
+// mapTask converts a universal task into the Anti-Captcha task format.
+func mapTask(task unicap.Task) (any, error) {
 	switch t := task.(type) {
 	case *tasks.ReCaptchaV2Task:
 		return mapReCaptchaV2(t), nil
@@ -133,35 +126,40 @@ func mapToAntiCaptchaTask(task unicap.Task) (any, error) {
 		return mapFunCaptcha(t), nil
 	case *tasks.TurnstileTask:
 		return mapTurnstile(t), nil
-	case *tasks.CloudflareChallengeTask:
-		return nil, fmt.Errorf("cloudflare challenge not supported by anticaptcha")
-	case *tasks.DataDomeTask:
-		return nil, fmt.Errorf("datadome not supported by anticaptcha")
 	case *tasks.GeeTestTask:
 		return mapGeeTest(t), nil
 	case *tasks.GeeTestV4Task:
 		return mapGeeTestV4(t), nil
-	case *tasks.HCaptchaTask:
-		return mapHCaptcha(t), nil
 	case *tasks.ImageToTextTask:
 		return mapImageToText(t), nil
+	case *tasks.FriendlyCaptchaTask:
+		return mapFriendlyCaptcha(t), nil
+	case *tasks.ProsopoTask:
+		return mapProsopo(t), nil
 	default:
-		return nil, fmt.Errorf("unsupported task type: %s", task.Type())
+		return nil, fmt.Errorf("%s: %w", task.Type(), unicap.ErrUnsupportedTask)
 	}
 }
 
-func mapReCaptchaV2(task *tasks.ReCaptchaV2Task) anticaptchaReCaptchaV2Task {
-	return anticaptchaReCaptchaV2Task{
+func mapReCaptchaV2(task *tasks.ReCaptchaV2Task) reCaptchaV2Task {
+	result := reCaptchaV2Task{
 		Type:                "RecaptchaV2TaskProxyless",
 		WebsiteURL:          task.WebsiteURL,
 		WebsiteKey:          task.WebsiteKey,
 		IsInvisible:         task.IsInvisible,
 		RecaptchaDataSValue: task.DataS,
 	}
+
+	if task.Proxy.IsSet() {
+		result.Type = "RecaptchaV2Task"
+		result.ProxyFields = solverapi.ProxyFieldsFrom(task.Proxy)
+	}
+
+	return result
 }
 
-func mapReCaptchaV3(task *tasks.ReCaptchaV3Task) anticaptchaReCaptchaV3Task {
-	return anticaptchaReCaptchaV3Task{
+func mapReCaptchaV3(task *tasks.ReCaptchaV3Task) reCaptchaV3Task {
+	return reCaptchaV3Task{
 		Type:       "RecaptchaV3TaskProxyless",
 		WebsiteURL: task.WebsiteURL,
 		WebsiteKey: task.WebsiteKey,
@@ -171,8 +169,8 @@ func mapReCaptchaV3(task *tasks.ReCaptchaV3Task) anticaptchaReCaptchaV3Task {
 	}
 }
 
-func mapReCaptchaV2Enterprise(task *tasks.ReCaptchaV2EnterpriseTask) anticaptchaReCaptchaV2EnterpriseTask {
-	result := anticaptchaReCaptchaV2EnterpriseTask{
+func mapReCaptchaV2Enterprise(task *tasks.ReCaptchaV2EnterpriseTask) reCaptchaV2EnterpriseTask {
+	result := reCaptchaV2EnterpriseTask{
 		Type:                "RecaptchaV2EnterpriseTaskProxyless",
 		WebsiteURL:          task.WebsiteURL,
 		WebsiteKey:          task.WebsiteKey,
@@ -184,18 +182,14 @@ func mapReCaptchaV2Enterprise(task *tasks.ReCaptchaV2EnterpriseTask) anticaptcha
 
 	if task.Proxy.IsSet() {
 		result.Type = "RecaptchaV2EnterpriseTask"
-		result.ProxyType = string(task.Proxy.Type)
-		result.ProxyAddress = task.Proxy.Address
-		result.ProxyPort = task.Proxy.Port
-		result.ProxyLogin = task.Proxy.Login
-		result.ProxyPassword = task.Proxy.Password
+		result.ProxyFields = solverapi.ProxyFieldsFrom(task.Proxy)
 	}
 
 	return result
 }
 
-func mapReCaptchaV3Enterprise(task *tasks.ReCaptchaV3EnterpriseTask) anticaptchaReCaptchaV3EnterpriseTask {
-	result := anticaptchaReCaptchaV3EnterpriseTask{
+func mapReCaptchaV3Enterprise(task *tasks.ReCaptchaV3EnterpriseTask) reCaptchaV3EnterpriseTask {
+	result := reCaptchaV3EnterpriseTask{
 		Type:              "RecaptchaV3EnterpriseTaskProxyless",
 		WebsiteURL:        task.WebsiteURL,
 		WebsiteKey:        task.WebsiteKey,
@@ -208,18 +202,14 @@ func mapReCaptchaV3Enterprise(task *tasks.ReCaptchaV3EnterpriseTask) anticaptcha
 
 	if task.Proxy.IsSet() {
 		result.Type = "RecaptchaV3EnterpriseTask"
-		result.ProxyType = string(task.Proxy.Type)
-		result.ProxyAddress = task.Proxy.Address
-		result.ProxyPort = task.Proxy.Port
-		result.ProxyLogin = task.Proxy.Login
-		result.ProxyPassword = task.Proxy.Password
+		result.ProxyFields = solverapi.ProxyFieldsFrom(task.Proxy)
 	}
 
 	return result
 }
 
-func mapFunCaptcha(task *tasks.FunCaptchaTask) anticaptchaFunCaptchaTask {
-	result := anticaptchaFunCaptchaTask{
+func mapFunCaptcha(task *tasks.FunCaptchaTask) funCaptchaTask {
+	result := funCaptchaTask{
 		Type:                     "FunCaptchaTaskProxyless",
 		WebsiteURL:               task.WebsiteURL,
 		WebsitePublicKey:         task.WebsitePublicKey,
@@ -229,18 +219,14 @@ func mapFunCaptcha(task *tasks.FunCaptchaTask) anticaptchaFunCaptchaTask {
 
 	if task.Proxy.IsSet() {
 		result.Type = "FunCaptchaTask"
-		result.ProxyType = string(task.Proxy.Type)
-		result.ProxyAddress = task.Proxy.Address
-		result.ProxyPort = task.Proxy.Port
-		result.ProxyLogin = task.Proxy.Login
-		result.ProxyPassword = task.Proxy.Password
+		result.ProxyFields = solverapi.ProxyFieldsFrom(task.Proxy)
 	}
 
 	return result
 }
 
-func mapTurnstile(task *tasks.TurnstileTask) anticaptchaTurnstileTask {
-	result := anticaptchaTurnstileTask{
+func mapTurnstile(task *tasks.TurnstileTask) turnstileTask {
+	result := turnstileTask{
 		Type:        "TurnstileTaskProxyless",
 		WebsiteURL:  task.WebsiteURL,
 		WebsiteKey:  task.WebsiteKey,
@@ -251,18 +237,14 @@ func mapTurnstile(task *tasks.TurnstileTask) anticaptchaTurnstileTask {
 
 	if task.Proxy.IsSet() {
 		result.Type = "TurnstileTask"
-		result.ProxyType = string(task.Proxy.Type)
-		result.ProxyAddress = task.Proxy.Address
-		result.ProxyPort = task.Proxy.Port
-		result.ProxyLogin = task.Proxy.Login
-		result.ProxyPassword = task.Proxy.Password
+		result.ProxyFields = solverapi.ProxyFieldsFrom(task.Proxy)
 	}
 
 	return result
 }
 
-func mapGeeTest(task *tasks.GeeTestTask) anticaptchaGeeTestTask {
-	result := anticaptchaGeeTestTask{
+func mapGeeTest(task *tasks.GeeTestTask) geeTestTask {
+	result := geeTestTask{
 		Type:                      "GeeTestTaskProxyless",
 		WebsiteURL:                task.WebsiteURL,
 		GT:                        task.GT,
@@ -273,60 +255,31 @@ func mapGeeTest(task *tasks.GeeTestTask) anticaptchaGeeTestTask {
 
 	if task.Proxy.IsSet() {
 		result.Type = "GeeTestTask"
-		result.ProxyType = string(task.Proxy.Type)
-		result.ProxyAddress = task.Proxy.Address
-		result.ProxyPort = task.Proxy.Port
-		result.ProxyLogin = task.Proxy.Login
-		result.ProxyPassword = task.Proxy.Password
+		result.ProxyFields = solverapi.ProxyFieldsFrom(task.Proxy)
 	}
 
 	return result
 }
 
-func mapGeeTestV4(task *tasks.GeeTestV4Task) anticaptchaGeeTestTask {
-	result := anticaptchaGeeTestTask{
+func mapGeeTestV4(task *tasks.GeeTestV4Task) geeTestTask {
+	result := geeTestTask{
 		Type:                      "GeeTestTaskProxyless",
 		WebsiteURL:                task.WebsiteURL,
 		Version:                   4,
-		InitParameters:            geetestInit{CaptchaID: task.CaptchaID},
+		InitParameters:            &geetestInit{CaptchaID: task.CaptchaID},
 		GeetestAPIServerSubdomain: task.APIServerSubdomain,
 	}
 
 	if task.Proxy.IsSet() {
 		result.Type = "GeeTestTask"
-		result.ProxyType = string(task.Proxy.Type)
-		result.ProxyAddress = task.Proxy.Address
-		result.ProxyPort = task.Proxy.Port
-		result.ProxyLogin = task.Proxy.Login
-		result.ProxyPassword = task.Proxy.Password
+		result.ProxyFields = solverapi.ProxyFieldsFrom(task.Proxy)
 	}
 
 	return result
 }
 
-func mapHCaptcha(task *tasks.HCaptchaTask) anticaptchaHCaptchaTask {
-	result := anticaptchaHCaptchaTask{
-		Type:              "HCaptchaTaskProxyless",
-		WebsiteURL:        task.WebsiteURL,
-		WebsiteKey:        task.WebsiteKey,
-		IsInvisible:       task.IsInvisible,
-		EnterprisePayload: task.EnterpriseData,
-	}
-
-	if task.Proxy.IsSet() {
-		result.Type = "HCaptchaTask"
-		result.ProxyType = string(task.Proxy.Type)
-		result.ProxyAddress = task.Proxy.Address
-		result.ProxyPort = task.Proxy.Port
-		result.ProxyLogin = task.Proxy.Login
-		result.ProxyPassword = task.Proxy.Password
-	}
-
-	return result
-}
-
-func mapImageToText(task *tasks.ImageToTextTask) anticaptchaImageToTextTask {
-	return anticaptchaImageToTextTask{
+func mapImageToText(task *tasks.ImageToTextTask) imageToTextTask {
+	return imageToTextTask{
 		Type:         "ImageToTextTask",
 		Body:         task.Body,
 		Phrase:       task.Phrase,
@@ -339,4 +292,34 @@ func mapImageToText(task *tasks.ImageToTextTask) anticaptchaImageToTextTask {
 		WebsiteURL:   task.WebsiteURL,
 		LanguagePool: task.LanguagePool,
 	}
+}
+
+func mapFriendlyCaptcha(task *tasks.FriendlyCaptchaTask) friendlyCaptchaTask {
+	result := friendlyCaptchaTask{
+		Type:       "FriendlyCaptchaTaskProxyless",
+		WebsiteURL: task.WebsiteURL,
+		WebsiteKey: task.WebsiteKey,
+	}
+
+	if task.Proxy.IsSet() {
+		result.Type = "FriendlyCaptchaTask"
+		result.ProxyFields = solverapi.ProxyFieldsFrom(task.Proxy)
+	}
+
+	return result
+}
+
+func mapProsopo(task *tasks.ProsopoTask) prosopoTask {
+	result := prosopoTask{
+		Type:       "ProsopoTaskProxyless",
+		WebsiteURL: task.WebsiteURL,
+		WebsiteKey: task.WebsiteKey,
+	}
+
+	if task.Proxy.IsSet() {
+		result.Type = "ProsopoTask"
+		result.ProxyFields = solverapi.ProxyFieldsFrom(task.Proxy)
+	}
+
+	return result
 }

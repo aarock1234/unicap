@@ -6,7 +6,7 @@ import (
 	"github.com/aarock1234/unicap"
 )
 
-// HCaptchaTask represents an hCaptcha solving task
+// HCaptchaTask represents an hCaptcha solving task.
 type HCaptchaTask struct {
 	WebsiteURL     string
 	WebsiteKey     string
@@ -22,13 +22,15 @@ func (t *HCaptchaTask) Type() unicap.TaskType {
 	return unicap.TaskTypeHCaptcha
 }
 
-// Validate ensures required fields are present
+// Validate ensures required fields are present.
 func (t *HCaptchaTask) Validate() error {
 	if t.WebsiteURL == "" {
 		return fmt.Errorf("website_url: %w", unicap.ErrInvalidTask)
 	}
+
 	if t.WebsiteKey == "" {
 		return fmt.Errorf("website_key: %w", unicap.ErrInvalidTask)
 	}
+
 	return nil
 }
