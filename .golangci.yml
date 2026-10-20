@@ -3,15 +3,23 @@ version: "2"
 linters:
   default: standard
   enable:
-    - errorlint
-    - gocritic
-    - misspell
-    - revive
+    - errorlint  # checks for common error wrapping issues
+    - gocritic   # opinionated but useful checks
+    - misspell   # catches common misspellings
+    - nilerr     # catches returning nil after checking a non-nil error
+    - revive     # extensible linter, replacement for golint
+    - sloglint   # enforces consistent log/slog usage
+  settings:
+    sloglint:
+      attr-only: true        # slog.String("key", v), never bare key-value pairs
+      context: scope         # use the *Context variants when a context is in scope
+      key-naming-case: snake
+      msg-style: lowercased
 
 formatters:
   enable:
-    - gofmt
-    - goimports
+    - gofmt      # checks code formatting per gofmt
+    - goimports  # checks import grouping and ordering
   settings:
     goimports:
       local-prefixes:

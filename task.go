@@ -1,58 +1,77 @@
 package unicap
 
-// Task represents a captcha solving task.
+// Task is a captcha to solve. The tasks package provides an implementation
+// for every captcha family unicap models.
 type Task interface {
-	// Type returns the captcha type identifier.
+	// Type returns the captcha family identifier.
 	Type() TaskType
 
-	// Validate ensures the task has the required inputs.
+	// Validate reports whether the task carries the inputs every provider
+	// requires. Providers may reject further fields they cannot honour.
 	Validate() error
 }
 
-// TaskType identifies the kind of captcha.
+// TaskType identifies a captcha family independently of any provider.
 type TaskType string
 
+// Token, cookie, and challenge captchas.
 const (
-	// TaskTypeReCaptchaV2 identifies a ReCaptcha v2 task.
-	TaskTypeReCaptchaV2 TaskType = "recaptcha_v2"
-	// TaskTypeReCaptchaV3 identifies a ReCaptcha v3 task.
-	TaskTypeReCaptchaV3 TaskType = "recaptcha_v3"
-	// TaskTypeReCaptchaV2Enterprise identifies a ReCaptcha v2 Enterprise task.
+	TaskTypeReCaptchaV2           TaskType = "recaptcha_v2"
 	TaskTypeReCaptchaV2Enterprise TaskType = "recaptcha_v2_enterprise"
-	// TaskTypeReCaptchaV3Enterprise identifies a ReCaptcha v3 Enterprise task.
+	TaskTypeReCaptchaV3           TaskType = "recaptcha_v3"
 	TaskTypeReCaptchaV3Enterprise TaskType = "recaptcha_v3_enterprise"
-	// TaskTypeHCaptcha identifies an hCaptcha task.
-	TaskTypeHCaptcha TaskType = "hcaptcha"
-	// TaskTypeFunCaptcha identifies a FunCaptcha task.
-	TaskTypeFunCaptcha TaskType = "funcaptcha"
-	// TaskTypeTurnstile identifies a Cloudflare Turnstile task.
-	TaskTypeTurnstile TaskType = "turnstile"
-	// TaskTypeCloudflareChallenge identifies a Cloudflare challenge task.
-	TaskTypeCloudflareChallenge TaskType = "cloudflare_challenge"
-	// TaskTypeDataDome identifies a DataDome slider task.
-	TaskTypeDataDome TaskType = "datadome"
-	// TaskTypeGeeTest identifies a GeeTest v3 task.
-	TaskTypeGeeTest TaskType = "geetest"
-	// TaskTypeGeeTestV4 identifies a GeeTest v4 task.
-	TaskTypeGeeTestV4 TaskType = "geetest_v4"
-	// TaskTypeImageToText identifies an image-to-text task.
-	TaskTypeImageToText TaskType = "image_to_text"
-	// TaskTypeAWSWAF identifies an AWS WAF captcha task.
-	TaskTypeAWSWAF TaskType = "aws_waf"
-	// TaskTypeMTCaptcha identifies an MTCaptcha task.
-	TaskTypeMTCaptcha TaskType = "mtcaptcha"
-	// TaskTypeFriendlyCaptcha identifies a Friendly Captcha task.
-	TaskTypeFriendlyCaptcha TaskType = "friendly_captcha"
-	// TaskTypeLemin identifies a Lemin Cropped captcha task.
-	TaskTypeLemin TaskType = "lemin"
-	// TaskTypeCutCaptcha identifies a Cutcaptcha task.
-	TaskTypeCutCaptcha TaskType = "cutcaptcha"
-	// TaskTypeText identifies a text captcha task.
-	TaskTypeText TaskType = "text"
-	// TaskTypeProsopo identifies a Prosopo Procaptcha task.
-	TaskTypeProsopo TaskType = "prosopo"
-	// TaskTypeAltcha identifies an Altcha captcha task.
-	TaskTypeAltcha TaskType = "altcha"
-	// TaskTypeRaw identifies a raw provider-specific passthrough task.
-	TaskTypeRaw TaskType = "raw"
+	TaskTypeHCaptcha              TaskType = "hcaptcha"
+	TaskTypeFunCaptcha            TaskType = "funcaptcha"
+	TaskTypeTurnstile             TaskType = "turnstile"
+	TaskTypeCloudflareChallenge   TaskType = "cloudflare_challenge"
+	TaskTypeDataDome              TaskType = "datadome"
+	TaskTypeGeeTest               TaskType = "geetest"
+	TaskTypeGeeTestV4             TaskType = "geetest_v4"
+	TaskTypeAWSWAF                TaskType = "aws_waf"
+	TaskTypeMTCaptcha             TaskType = "mtcaptcha"
+	TaskTypeFriendlyCaptcha       TaskType = "friendly_captcha"
+	TaskTypeLemin                 TaskType = "lemin"
+	TaskTypeCutCaptcha            TaskType = "cutcaptcha"
+	TaskTypeProsopo               TaskType = "prosopo"
+	TaskTypeAltcha                TaskType = "altcha"
+	TaskTypeCapy                  TaskType = "capy"
+	TaskTypeKeyCaptcha            TaskType = "keycaptcha"
+	TaskTypeCyberSiAra            TaskType = "cybersiara"
+	TaskTypeAtbCaptcha            TaskType = "atbcaptcha"
+	TaskTypeTencent               TaskType = "tencent"
+	TaskTypeCaptchaFox            TaskType = "captchafox"
+	TaskTypeVKCaptcha             TaskType = "vk_captcha"
+	TaskTypeYidun                 TaskType = "yidun"
+	TaskTypeBinance               TaskType = "binance"
+	TaskTypeHunt                  TaskType = "hunt"
+	TaskTypeTSPD                  TaskType = "tspd"
+	TaskTypeBasilisk              TaskType = "basilisk"
+	TaskTypeImperva               TaskType = "imperva"
+	TaskTypeAlibaba               TaskType = "alibaba"
+	TaskTypeYandexSmartCaptcha    TaskType = "yandex_smartcaptcha"
+	TaskTypeBotDeflector          TaskType = "botdeflector"
+	TaskTypeAntiGate              TaskType = "antigate"
 )
+
+// Image, audio, and text recognition captchas.
+const (
+	TaskTypeImageToText             TaskType = "image_to_text"
+	TaskTypeText                    TaskType = "text"
+	TaskTypeAudio                   TaskType = "audio"
+	TaskTypeCoordinates             TaskType = "coordinates"
+	TaskTypeGrid                    TaskType = "grid"
+	TaskTypeRotate                  TaskType = "rotate"
+	TaskTypeDrawAround              TaskType = "draw_around"
+	TaskTypeBoundingBox             TaskType = "bounding_box"
+	TaskTypeDragAndDrop             TaskType = "drag_and_drop"
+	TaskTypeReCaptchaClassification TaskType = "recaptcha_classification"
+	TaskTypeAWSWAFClassification    TaskType = "aws_waf_classification"
+	TaskTypeVisionEngine            TaskType = "vision_engine"
+	TaskTypeTemu                    TaskType = "temu"
+	TaskTypeVKCaptchaImage          TaskType = "vk_captcha_image"
+	TaskTypeYandexImage             TaskType = "yandex_image"
+	TaskTypeYandexPuzzle            TaskType = "yandex_puzzle"
+)
+
+// TaskTypeRaw identifies a provider-specific passthrough task.
+const TaskTypeRaw TaskType = "raw"

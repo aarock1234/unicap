@@ -1,5 +1,3 @@
-module github.com/aarock1234/unicap
+module github.com/aarock1234/unicap/v3
 
-go 1.26
-
-require github.com/joho/godotenv v1.5.1
+go 1.27.2

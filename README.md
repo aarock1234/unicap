@@ -1,570 +1,256 @@
 # unicap
 
-[![Go Reference](https://pkg.go.dev/badge/unicap.svg)](https://pkg.go.dev/unicap)
-[![Release](https://img.shields.io/github/v/release/aarock1234/unicap)](https://unicap/releases)
+[![Go Reference](https://pkg.go.dev/badge/github.com/aarock1234/unicap/v3.svg)](https://pkg.go.dev/github.com/aarock1234/unicap/v3)
+[![Release](https://img.shields.io/github/v/release/aarock1234/unicap)](https://github.com/aarock1234/unicap/releases)
 [![License](https://img.shields.io/badge/license-Elastic%202.0-blue.svg)](LICENSE)
 
-Universal captcha solving SDK for Go. One interface, multiple providers.
+A universal captcha-solving SDK for Go. Write a task once and solve it with CapSolver, 2Captcha, Anti-Captcha, or your own provider. Results and errors look the same whichever provider you use.
 
 ```go
-package main
-
-import (
-    "context"
-    "fmt"
-    "io"
-    "log"
-    "net/http"
-    "net/url"
-    "strings"
-    "time"
-
-    "github.com/aarock1234/unicap"
-    "github.com/aarock1234/unicap/provider/capsolver"
-    "github.com/aarock1234/unicap/tasks"
-)
-
-func main() {
-    if err := run(); err != nil {
-        log.Fatal(err)
-    }
-}
-
-func run() error {
-    // Initialize the provider, in this case CapSolver, with your API key
-    provider, err := capsolver.New("YOUR_API_KEY")
-    if err != nil {
-        return err
-    }
-
-    // Create a client with the provider
-    client, err := unicap.New(provider)
-    if err != nil {
-        return err
-    }
-
-    // Set up a context with timeout for the captcha solving operation
-    ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-    defer cancel()
-
-    // Solve the ReCaptcha V2 challenge
-    // This will automatically poll until the solution is ready
-    solution, err := client.Solve(ctx, &tasks.ReCaptchaV2Task{
-        WebsiteURL: "https://www.google.com/recaptcha/api2/demo",
-        WebsiteKey: "6Le-wvkSAAAAAPBMRTvw0Q4Muexq9bi0DJwx_mJ-",
-    })
-    if err != nil {
-        return err
-    }
-
-    fmt.Printf("Token: %s\n", solution.Token)
-
-    // Verify the token by submitting it to the demo page
-    data := url.Values{
-        "g-recaptcha-response": {solution.Token},
-    }
-
-    // Create a POST request to verify the token
-    req, err := http.NewRequestWithContext(ctx, "POST", "https://www.google.com/recaptcha/api2/demo", strings.NewReader(data.Encode()))
-    if err != nil {
-        return err
-    }
-    req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-
-    // Send the verification request
-    resp, err := http.DefaultClient.Do(req)
-    if err != nil {
-        return err
-    }
-    defer func() { _ = resp.Body.Close() }()
-
-    // Read the response body
-    body, err := io.ReadAll(resp.Body)
-    if err != nil {
-        return err
-    }
-
-    // Expected output: "Verification Success... Hooray!"
-    fmt.Printf("Verification response: %s\n", string(body))
-
-    return nil
-}
-```
-
-## Features
-
-- **Provider abstraction**: Switch providers without changing code
-- **Type-safe API**: Proper structs, no `interface{}` abuse
-- **Sync & async**: Auto-polling or manual control
-- **Proxy support**: Optional for all task types
-- **Extensible**: Create custom providers easily
-
-## Supported Providers & Captcha Types
-
-| Type/Provider        | [CapSolver](https://capsolver.com/) | [2Captcha](https://2captcha.com/) | [AntiCaptcha](https://anti-captcha.com/) |
-| -------------------- | ----------------------------------- | --------------------------------- | ---------------------------------------- |
-| Image to Text        | ✓                                   | ✓                                 | ✓                                        |
-| ReCaptcha V2         | ✓                                   | ✓                                 | ✓                                        |
-| ReCaptcha V3         | ✓                                   | ✓                                 | ✓                                        |
-| ReCaptcha Enterprise | ✓                                   | ✓                                 | ✓                                        |
-| hCaptcha             | ✓                                   | ✓                                 | -                                        |
-| FunCaptcha           | ✓                                   | ✓                                 | ✓                                        |
-| Turnstile            | ✓                                   | ✓                                 | ✓                                        |
-| GeeTest V3           | ✓                                   | ✓                                 | ✓                                        |
-| GeeTest V4           | ✓                                   | ✓                                 | ✓                                        |
-| Cloudflare Challenge | ✓                                   | -                                 | -                                        |
-| DataDome             | ✓                                   | ✓                                 | -                                        |
-| AWS WAF              | ✓                                   | ✓                                 | -                                        |
-| MTCaptcha            | ✓                                   | ✓                                 | -                                        |
-| Friendly Captcha     | -                                   | ✓                                 | ✓                                        |
-| Lemin                | -                                   | ✓                                 | -                                        |
-| Cutcaptcha           | -                                   | ✓                                 | -                                        |
-| Text                 | -                                   | ✓                                 | -                                        |
-| Prosopo              | -                                   | ✓                                 | ✓                                        |
-| Altcha               | -                                   | ✓                                 | -                                        |
-| Raw (passthrough)    | ✓                                   | ✓                                 | ✓                                        |
-
-## Installation
-
-```bash
-go get github.com/aarock1234/unicap@latest
-```
-
-## Quick Start
-
-The following snippets assume the same imports as the full example above.
-
-### Synchronous (auto-polling)
-
-```go
-provider, err := capsolver.New("API_KEY")
+provider, err := capsolver.New(os.Getenv("CAPSOLVER_API_KEY"))
 if err != nil {
-    log.Fatal(err)
+	return err
 }
 
 client, err := unicap.New(provider)
 if err != nil {
-    log.Fatal(err)
+	return err
 }
 
-ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-defer cancel()
-
-solution, err := client.Solve(ctx, &tasks.ReCaptchaV2Task{
-    WebsiteURL: "https://www.google.com/recaptcha/api2/demo",
-    WebsiteKey: "6Le-wvkSAAAAAPBMRTvw0Q4Muexq9bi0DJwx_mJ-",
+result, err := client.Solve(ctx, &tasks.ReCaptchaV2Task{
+	WebsiteURL: "https://www.google.com/recaptcha/api2/demo",
+	WebsiteKey: "6Le-wvkSAAAAAPBMRTvw0Q4Muexq9bi0DJwx_mJ-",
 })
 if err != nil {
-    log.Fatal(err)
+	return err
 }
 
-fmt.Println(solution.Token)
+fmt.Println(result.Solution.Token)
 ```
 
-### Asynchronous (manual control)
+## Installation
+
+```bash
+go get github.com/aarock1234/unicap/v3@latest
+```
+
+Requires Go 1.27 or newer. If you're upgrading from v1 or v2, see [MIGRATION.md](MIGRATION.md).
+
+## Features
+
+- **One task model for every provider.** There are 51 typed tasks in [`tasks`](tasks), plus `RawTask` for anything unicap doesn't model yet.
+- **Strict mapping.** If you set an option the selected provider can't honour, the task fails with `unicap.ErrUnsupportedOption`. The option is never silently dropped.
+- **Typed results.** `Result` carries the task ID, cost, and timing. `Solution` exposes `Token`, `Text`, `UserAgent`, `Cookies`, `Coordinates`, `Boxes`, `Indexes`, and `Angle`. Family-specific payloads decode with `unicap.DecodeSolution`.
+- **Errors you can act on.** Provider error codes map to sentinels such as `ErrInsufficientFunds`, `ErrUnsolvable`, and `ErrProxy`. `unicap.IsRetryable` tells you whether resubmitting the task might succeed.
+- **Provider-aware polling.** Each provider's recommended pace is the default. Image tasks that a provider solves synchronously return immediately.
+- **Account features.** Check your balance, report correct or incorrect answers, and set affiliate IDs, callback URLs, and language pools.
+
+## Usage
+
+### Solve and wait
+
+`Solve` validates the task, submits it, and polls until the solution is ready, the context is canceled, or polling times out.
 
 ```go
-ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-defer cancel()
+result, err := client.Solve(ctx, &tasks.TurnstileTask{
+	WebsiteURL: "https://example.com/login",
+	WebsiteKey: "0x4AAAAAAA...",
+})
+```
 
-task := &tasks.ReCaptchaV2Task{
-    WebsiteURL: "https://www.google.com/recaptcha/api2/demo",
-    WebsiteKey: "6Le-wvkSAAAAAPBMRTvw0Q4Muexq9bi0DJwx_mJ-",
-}
+### Submit now, collect later
 
-taskID, err := client.CreateTask(ctx, task)
+```go
+created, err := client.CreateTask(ctx, task)
 if err != nil {
-    log.Fatal(err)
+	return err
 }
 
-fmt.Printf("Task ID: %s\n", taskID)
+// Recognition tasks some providers solve synchronously are already ready.
+if !created.Ready() {
+	result, err := client.Wait(ctx, created.TaskID)
+	// ...
+}
+```
 
-// Do other work...
-time.Sleep(10 * time.Second)
+`client.GetTaskResult(ctx, taskID)` checks the task once without waiting.
 
-result, err := client.GetTaskResult(ctx, taskID)
+### Cookies, user agents, and family-specific solutions
+
+```go
+result, err := client.Solve(ctx, &tasks.DataDomeTask{
+	WebsiteURL: "https://example.com",
+	CaptchaURL: captchaURL,
+	UserAgent:  userAgent,
+	Proxy:      proxy,
+})
 if err != nil {
-    log.Fatal(err)
+	return err
 }
 
-switch result.Status {
-case unicap.TaskStatusReady:
-    fmt.Println(result.Solution.Token)
-case unicap.TaskStatusProcessing:
-    fmt.Println("Still processing, check again later")
-case unicap.TaskStatusFailed:
-    log.Printf("Task failed: %v", result.Error)
-}
+cookie, ok := result.Solution.Cookie("datadome")
 ```
 
-### With Proxy
-
 ```go
-task := &tasks.ReCaptchaV2Task{
-    WebsiteURL: "https://example.com",
-    WebsiteKey: "6Le-wvkSAAAAAPBMRTvw0Q4Muexq9bi0DJwx_mJ-",
-    Proxy: &unicap.Proxy{
-        Type:     unicap.ProxyTypeHTTP,
-        Address:  "proxy.example.com",
-        Port:     8080,
-        Login:    "user",
-        Password: "pass",
-    },
+result, err := client.Solve(ctx, &tasks.GeeTestV4Task{
+	WebsiteURL: "https://example.com",
+	CaptchaID:  captchaID,
+})
+if err != nil {
+	return err
 }
+
+geetest, err := unicap.DecodeSolution[tasks.GeeTestV4Solution](result.Solution)
 ```
 
-### Multi-Provider Failover
+### Proxies
 
 ```go
-ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
-defer cancel()
+proxy, err := unicap.ParseProxyURL("socks5://user:pass@203.0.113.10:1080")
+if err != nil {
+	return err
+}
 
 task := &tasks.ReCaptchaV2Task{
-    WebsiteURL: "https://www.google.com/recaptcha/api2/demo",
-    WebsiteKey: "6Le-wvkSAAAAAPBMRTvw0Q4Muexq9bi0DJwx_mJ-",
-}
-
-providers := []unicap.Provider{}
-
-if p, err := capsolver.New("PRIMARY_KEY"); err == nil {
-    providers = append(providers, p)
-}
-if p, err := twocaptcha.New("BACKUP_KEY"); err == nil {
-    providers = append(providers, p)
-}
-
-for _, provider := range providers {
-    client, err := unicap.New(provider)
-    if err != nil {
-        continue
-    }
-
-    solution, err := client.Solve(ctx, task)
-    if err != nil {
-        log.Printf("provider %s failed: %v", provider.Name(), err)
-        continue
-    }
-
-    fmt.Printf("Solved by %s: %s\n", provider.Name(), solution.Token)
-    break
+	WebsiteURL: "https://example.com",
+	WebsiteKey: siteKey,
+	UserAgent:  userAgent,
+	Proxy:      proxy,
 }
 ```
 
-## Task Types
+A nil `Proxy` means the provider solves the task from its own network. When you log a `*unicap.Proxy` or print it with `String`, the password is redacted.
 
-### ReCaptcha V2
+### Errors and retries
 
 ```go
-&tasks.ReCaptchaV2Task{
-    WebsiteURL:  "https://example.com",
-    WebsiteKey:  "site-key",
-    IsInvisible: false,
-    DataS:       "optional-data-s",
-    Proxy:       proxy, // optional
+result, err := client.Solve(ctx, task)
+
+switch {
+case errors.Is(err, unicap.ErrInsufficientFunds):
+	// Top up the account.
+case errors.Is(err, unicap.ErrUnsupportedOption):
+	// The provider cannot honour one of the task's options.
+case unicap.IsRetryable(err):
+	// ErrUnsolvable or ErrUnavailable: submitting again may succeed.
+}
+
+if providerErr, ok := errors.AsType[*unicap.Error](err); ok {
+	fmt.Println(providerErr.Provider, providerErr.Code, providerErr.Message)
 }
 ```
 
-### ReCaptcha V3
+To have `Solve` resubmit after retryable failures, use `unicap.WithSolveRetries(n)`. Providers may bill for every attempt.
+
+### Balance and reports
 
 ```go
-&tasks.ReCaptchaV3Task{
-    WebsiteURL: "https://example.com",
-    WebsiteKey: "site-key",
-    PageAction: "verify",
-    MinScore:   0.7,
-    Proxy:      proxy, // optional
-}
+balance, err := client.Balance(ctx)
+
+// After the target site accepts or rejects the token:
+err = client.Report(ctx, result, accepted)
 ```
 
-### hCaptcha
+Both calls return `unicap.ErrUnsupportedOperation` when the provider doesn't offer that feature.
+
+### Choosing a provider at runtime
 
 ```go
-&tasks.HCaptchaTask{
-    WebsiteURL: "https://example.com",
-    WebsiteKey: "site-key",
-    Proxy:      proxy, // optional
-}
+solver, err := provider.NewRegistry().New("2captcha", apiKey,
+	provider.WithLogger(logger),
+)
 ```
 
-### FunCaptcha
+### Client options
 
-```go
-&tasks.FunCaptchaTask{
-    WebsiteURL:       "https://example.com",
-    WebsitePublicKey: "public-key",
-    APIJSSubdomain:   "api.arkoselabs.com", // optional
-    Proxy:            proxy, // optional
-}
-```
+| Option                          | Effect                                                                       |
+| ------------------------------- | ---------------------------------------------------------------------------- |
+| `unicap.WithLogger(logger)`     | Logs task lifecycle events. Logs are discarded by default.                   |
+| `unicap.WithPolling(polling)`   | Overrides the provider's recommended polling. Start from `unicap.DefaultPolling()`. |
+| `unicap.WithSolveRetries(n)`    | Resubmits up to `n` times after retryable failures.                          |
 
-### Turnstile
+### Provider options
 
-```go
-&tasks.TurnstileTask{
-    WebsiteURL: "https://example.com",
-    WebsiteKey: "site-key",
-    Action:     "login", // optional
-    Proxy:      proxy, // optional
-}
-```
+| Option                | CapSolver | 2Captcha | Anti-Captcha |
+| --------------------- | --------- | -------- | ------------ |
+| `WithHTTPClient`      | ✓         | ✓        | ✓            |
+| `WithLogger`          | ✓         | ✓        | ✓            |
+| `WithBaseURL`         | ✓         | ✓        | ✓            |
+| `WithCallbackURL`     | ✓         | ✓        | ✓            |
+| `WithAppID`           | ✓         | –        | –            |
+| `WithSoftID`          | –         | ✓        | ✓            |
+| `WithLanguagePool`    | –         | ✓        | per task     |
 
-### GeeTest V3
+The Anti-Captcha client also has `PushVariable` for AntiGate templates.
 
-```go
-&tasks.GeeTestTask{
-    WebsiteURL:         "https://example.com",
-    GT:                 "gt-value",
-    Challenge:          "challenge-value",
-    APIServerSubdomain: "api.geetest.com", // optional
-    Proxy:              proxy, // optional
-}
-```
+## Supported captchas
 
-### GeeTest V4
+| Task                                     | CapSolver | 2Captcha | Anti-Captcha |
+| ---------------------------------------- | :-------: | :------: | :----------: |
+| `ReCaptchaV2Task`                        | ✓         | ✓        | ✓            |
+| `ReCaptchaV2EnterpriseTask`              | ✓         | ✓        | ✓            |
+| `ReCaptchaV3Task`                        | ✓         | ✓        | ✓            |
+| `ReCaptchaV3EnterpriseTask`              | ✓         | ✓        | ✓            |
+| `ReCaptchaClassificationTask`            | ✓         | –        | –            |
+| `HCaptchaTask`¹                          | –         | –        | –            |
+| `FunCaptchaTask`                         | –         | ✓        | ✓            |
+| `TurnstileTask`                          | ✓         | ✓        | ✓            |
+| `CloudflareChallengeTask`                | ✓         | –        | –            |
+| `DataDomeTask`                           | ✓         | ✓        | –            |
+| `GeeTestTask`, `GeeTestV4Task`           | ✓         | ✓        | ✓            |
+| `AWSWAFTask`                             | ✓         | ✓        | ✓            |
+| `AWSWAFClassificationTask`               | ✓         | –        | –            |
+| `MTCaptchaTask`                          | ✓         | ✓        | –            |
+| `FriendlyCaptchaTask`                    | –         | ✓        | ✓            |
+| `ProsopoTask`                            | –         | ✓        | ✓            |
+| `AltchaTask`                             | –         | ✓        | ✓            |
+| `BotDeflectorTask`                       | ✓         | –        | –            |
+| `AntiGateTask`                           | –         | –        | ✓            |
+| `LeminTask`, `CutCaptchaTask`, `CapyTask`, `KeyCaptchaTask` | – | ✓ | – |
+| `CyberSiAraTask`, `AtbCaptchaTask`, `TencentTask`, `CaptchaFoxTask` | – | ✓ | – |
+| `YandexSmartCaptchaTask`, `VKCaptchaTask`, `YidunTask`, `BinanceTask` | – | ✓ | – |
+| `HuntTask`, `TSPDTask`, `BasiliskTask`, `ImpervaTask`, `AlibabaTask` | – | ✓ | – |
+| `ImageToTextTask`                        | ✓         | ✓        | ✓            |
+| `CoordinatesTask`                        | –         | ✓        | ✓            |
+| `VisionEngineTask`                       | ✓         | –        | –            |
+| `TextCaptchaTask`, `AudioTask`, `GridTask`, `RotateTask` | – | ✓ | – |
+| `DrawAroundTask`, `BoundingBoxTask`, `DragAndDropTask` | – | ✓ | – |
+| `TemuTask`, `VKCaptchaImageTask`, `YandexImageTask`, `YandexPuzzleTask` | – | ✓ | – |
+| `RawTask` (passthrough)                  | ✓         | ✓        | ✓            |
 
-```go
-&tasks.GeeTestV4Task{
-    WebsiteURL: "https://example.com",
-    CaptchaID:  "captcha-id",
-    Proxy:      proxy, // optional
-}
-```
+¹ All three providers have withdrawn hCaptcha support, so the built-in providers reject it. The task type remains available for custom providers.
 
-### Cloudflare Challenge
+`client.Supports(taskType)` reports support at runtime.
 
-```go
-&tasks.CloudflareChallengeTask{
-    WebsiteURL: "https://example.com",
-    HTML:       "<html>...</html>", // optional
-    UserAgent:  "Mozilla/5.0...",
-    Proxy:      proxy, // required
-}
-```
+## Custom providers
 
-### DataDome
-
-```go
-&tasks.DataDomeTask{
-    WebsiteURL: "https://example.com",
-    CaptchaURL: "https://geo.captcha-delivery.com/...",
-    UserAgent:  "Mozilla/5.0...",
-    Proxy:      proxy, // required
-}
-```
-
-### Image Recognition
-
-```go
-&tasks.ImageToTextTask{
-    Body:      "base64-encoded-image",
-    Numeric:   tasks.NumericModeAny,
-    MinLength: 4,
-    MaxLength: 20,
-}
-```
-
-### AWS WAF
-
-```go
-&tasks.AWSWAFTask{
-    WebsiteURL: "https://example.com",
-    Key:        "aws-key",
-    IV:         "aws-iv",      // optional
-    Context:    "aws-context", // optional
-    Proxy:      proxy,         // optional
-}
-```
-
-### MTCaptcha
-
-```go
-&tasks.MTCaptchaTask{
-    WebsiteURL: "https://example.com",
-    WebsiteKey: "site-key",
-    Proxy:      proxy, // optional
-}
-```
-
-### Friendly Captcha
-
-```go
-&tasks.FriendlyCaptchaTask{
-    WebsiteURL: "https://example.com",
-    WebsiteKey: "site-key",
-    Proxy:      proxy, // optional
-}
-```
-
-### Lemin
-
-```go
-&tasks.LeminTask{
-    WebsiteURL: "https://example.com",
-    CaptchaID:  "captcha-id",
-    DivID:      "lemin-cropped-captcha",
-    Proxy:      proxy, // optional
-}
-```
-
-### Cutcaptcha
-
-```go
-&tasks.CutCaptchaTask{
-    WebsiteURL: "https://example.com",
-    MiseryKey:  "misery-key",
-    APIKey:     "api-key",
-    Proxy:      proxy, // optional
-}
-```
-
-### Text
-
-```go
-&tasks.TextCaptchaTask{
-    Question: "What is 2 + 2?",
-}
-```
-
-### Prosopo
-
-```go
-&tasks.ProsopoTask{
-    WebsiteURL: "https://example.com",
-    WebsiteKey: "site-key",
-    Proxy:      proxy, // optional
-}
-```
-
-### Altcha
-
-```go
-&tasks.AltchaTask{
-    WebsiteURL:   "https://example.com",
-    ChallengeURL: "https://example.com/captcha/api/altcha/challenge",
-    // or ChallengeJSON: `{"algorithm":"SHA-256",...}`
-    Proxy: proxy, // optional
-}
-```
-
-### Raw (provider passthrough)
-
-For captcha types the SDK does not model directly, submit the provider's own
-task type string and parameters:
-
-```go
-&tasks.RawTask{
-    TaskType: "AntiGateTask",
-    Params: map[string]any{
-        "websiteURL": "https://example.com",
-        "templateName": "Verification code",
-    },
-}
-```
-
-## Custom Providers
-
-Implement the `unicap.Provider` interface:
+Implement `unicap.Provider`:
 
 ```go
 type Provider interface {
-    CreateTask(ctx context.Context, task unicap.Task) (string, error)
-    GetTaskResult(ctx context.Context, taskID string) (*unicap.TaskResult, error)
-    Name() string
+	Name() string
+	CreateTask(ctx context.Context, task Task) (*Result, error)
+	GetTaskResult(ctx context.Context, taskID string) (*Result, error)
 }
 ```
 
-Build your own transport and mapping logic inside the provider implementation:
+Return provider failures as `*unicap.Error`, and wrap a sentinel in its `Err` field so callers can use `errors.Is`. You can also implement `BalanceChecker`, `Reporter`, `TaskSupporter`, and `PollingAdvisor`. [`examples/custom_provider`](examples/custom_provider) has a complete implementation.
 
-```go
-var _ unicap.Provider = (*customProvider)(nil)
+## Examples
 
-type customProvider struct {
-    apiKey string
-    client *http.Client
-}
+- [`examples/solve`](examples/solve): choose a provider at runtime, check the balance, solve, and report. Run it with `make example provider=2captcha` after setting `CAPSOLVER_API_KEY`, `TWOCAPTCHA_API_KEY`, or `ANTICAPTCHA_API_KEY`.
+- [`examples/custom_provider`](examples/custom_provider): plug a custom provider into unicap.
 
-func NewCustomProvider(apiKey string) (unicap.Provider, error) {
-    return &customProvider{
-        apiKey: apiKey,
-        client: &http.Client{Timeout: 30 * time.Second},
-    }, nil
-}
+## Development
 
-func (p *customProvider) CreateTask(ctx context.Context, task unicap.Task) (string, error) {
-    // translate the SDK task into your provider's wire format,
-    // send the request, then map the response into a task ID.
-    return "", nil
-}
-
-func (p *customProvider) GetTaskResult(ctx context.Context, taskID string) (*unicap.TaskResult, error) {
-    // fetch the provider-specific result and map it into a unicap.TaskResult.
-    return nil, nil
-}
-
-func (p *customProvider) Name() string {
-    return "custom"
-}
-```
-
-See `examples/custom_provider/` for complete implementation.
-
-## Configuration
-
-### Custom Logger
-
-```go
-logger := slog.New(slog.NewJSONHandler(os.Stdout, &slog.HandlerOptions{
-    Level: slog.LevelDebug,
-}))
-
-client, err := unicap.New(
-    provider,
-    unicap.WithLogger(logger),
-)
-if err != nil {
-    return err
-}
-```
-
-### Custom Polling
-
-```go
-poller := unicap.NewPoller(provider, unicap.PollerConfig{
-    InitialInterval: 1 * time.Second,
-    MaxInterval:     10 * time.Second,
-    Timeout:         3 * time.Minute,
-    Multiplier:      2.0,
-})
-
-client, err := unicap.New(
-    provider,
-    unicap.WithPoller(poller),
-)
-if err != nil {
-    return err
-}
-```
-
-## Error Handling
-
-```go
-solution, err := client.Solve(ctx, task)
-if err != nil {
-    switch {
-    case errors.Is(err, unicap.ErrInvalidAPIKey):
-        // Handle invalid API key
-    case errors.Is(err, unicap.ErrInsufficientFunds):
-        // Handle low balance
-    case errors.Is(err, unicap.ErrTimeout):
-        // Handle timeout
-    default:
-        // Handle other errors
-    }
-}
+```bash
+make help     # list targets
+make lint     # golangci-lint
+make format   # gofmt and goimports
+make vet
+make build
 ```
 
 ## License
 
-Elastic License 2.0
-
-Free to use, cannot resell as a service. See [LICENSE](LICENSE) for details.
+[Elastic License 2.0](LICENSE)

@@ -4,7 +4,7 @@ import (
 	"errors"
 	"testing"
 
-	"github.com/aarock1234/unicap"
+	"github.com/aarock1234/unicap/v3"
 )
 
 func TestRawTaskValidate(t *testing.T) {

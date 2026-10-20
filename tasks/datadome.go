@@ -1,41 +1,41 @@
 package tasks
 
 import (
-	"fmt"
-
-	"github.com/aarock1234/unicap"
+	"github.com/aarock1234/unicap/v3"
 )
 
-// DataDomeTask represents a DataDome slider captcha solving task.
+// DataDomeTask solves a DataDome slider and returns the datadome cookie in
+// unicap.Solution.Cookies. Use the same proxy and User-Agent for follow-up
+// requests.
 type DataDomeTask struct {
+	// WebsiteURL is the protected page.
 	WebsiteURL string
+
+	// CaptchaURL is the captcha iframe URL. Its "t" parameter must be "fe";
+	// "t=bv" means the proxy IP is banned.
 	CaptchaURL string
-	UserAgent  string
-	Proxy      *unicap.Proxy
+
+	// UserAgent is the browser User-Agent the worker should present.
+	UserAgent string
+
+	// HTML is the blocked page body, when available.
+	HTML string
+
+	// Proxy is the required proxy the worker loads the page through.
+	Proxy *unicap.Proxy
 }
 
-// Type returns the SDK task type identifier.
+// Type returns unicap.TaskTypeDataDome.
 func (t *DataDomeTask) Type() unicap.TaskType {
 	return unicap.TaskTypeDataDome
 }
 
-// Validate reports an error if required fields are missing or no proxy is set.
+// Validate reports missing required fields and a missing or malformed proxy.
 func (t *DataDomeTask) Validate() error {
-	if t.WebsiteURL == "" {
-		return fmt.Errorf("website_url: %w", unicap.ErrInvalidTask)
-	}
-
-	if t.CaptchaURL == "" {
-		return fmt.Errorf("captcha_url: %w", unicap.ErrInvalidTask)
-	}
-
-	if t.UserAgent == "" {
-		return fmt.Errorf("user_agent: %w", unicap.ErrInvalidTask)
-	}
-
-	if !t.Proxy.IsSet() {
-		return fmt.Errorf("proxy is required for datadome: %w", unicap.ErrInvalidTask)
-	}
-
-	return nil
+	return validate(
+		required("WebsiteURL", t.WebsiteURL),
+		required("CaptchaURL", t.CaptchaURL),
+		required("UserAgent", t.UserAgent),
+		requiredProxy(t.Proxy),
+	)
 }

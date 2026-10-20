@@ -1,36 +1,48 @@
 package tasks
 
 import (
-	"fmt"
-
-	"github.com/aarock1234/unicap"
+	"github.com/aarock1234/unicap/v3"
 )
 
-// HCaptchaTask represents an hCaptcha solving task.
+// HCaptchaTask solves an hCaptcha widget.
+//
+// CapSolver, 2Captcha, and Anti-Captcha have all withdrawn hCaptcha support,
+// so the built-in providers reject this task with unicap.ErrUnsupportedTask.
+// It remains available for custom providers.
 type HCaptchaTask struct {
-	WebsiteURL     string
-	WebsiteKey     string
-	IsInvisible    bool
-	EnterpriseData map[string]any
-	UserAgent      string
-	Cookies        string
-	Proxy          *unicap.Proxy
+	// WebsiteURL is the page that shows the captcha.
+	WebsiteURL string
+
+	// WebsiteKey is the site key from the widget's data-sitekey attribute.
+	WebsiteKey string
+
+	// IsInvisible marks an invisible hCaptcha widget.
+	IsInvisible bool
+
+	// EnterprisePayload holds hCaptcha Enterprise parameters such as rqdata.
+	// Its keys vary by site, so it is intentionally dynamic.
+	EnterprisePayload map[string]any
+
+	// UserAgent is the browser User-Agent the worker should present.
+	UserAgent string
+
+	// Cookies are page cookies in "name=value; name2=value2" form.
+	Cookies string
+
+	// Proxy is the optional proxy the worker loads the page through.
+	Proxy *unicap.Proxy
 }
 
-// Type returns the SDK task type identifier.
+// Type returns unicap.TaskTypeHCaptcha.
 func (t *HCaptchaTask) Type() unicap.TaskType {
 	return unicap.TaskTypeHCaptcha
 }
 
-// Validate ensures required fields are present.
+// Validate reports missing required fields and malformed proxies.
 func (t *HCaptchaTask) Validate() error {
-	if t.WebsiteURL == "" {
-		return fmt.Errorf("website_url: %w", unicap.ErrInvalidTask)
-	}
-
-	if t.WebsiteKey == "" {
-		return fmt.Errorf("website_key: %w", unicap.ErrInvalidTask)
-	}
-
-	return nil
+	return validate(
+		required("WebsiteURL", t.WebsiteURL),
+		required("WebsiteKey", t.WebsiteKey),
+		optionalProxy(t.Proxy),
+	)
 }

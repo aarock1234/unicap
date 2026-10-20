@@ -1,27 +1,77 @@
-// Package provider contains runtime registry helpers for selecting built-in
-// unicap providers by name.
+// Package provider selects built-in or custom unicap providers by name, for
+// applications that choose a provider from configuration at runtime.
 package provider
 
 import (
 	"errors"
 	"fmt"
+	"log/slog"
+	"net/http"
 	"slices"
 	"sync"
 
-	"github.com/aarock1234/unicap"
-	"github.com/aarock1234/unicap/provider/anticaptcha"
-	"github.com/aarock1234/unicap/provider/capsolver"
-	"github.com/aarock1234/unicap/provider/twocaptcha"
+	"github.com/aarock1234/unicap/v3"
+	"github.com/aarock1234/unicap/v3/provider/anticaptcha"
+	"github.com/aarock1234/unicap/v3/provider/capsolver"
+	"github.com/aarock1234/unicap/v3/provider/twocaptcha"
 )
 
-// ErrUnknownProvider reports that no factory is registered for a provider name.
+// ErrUnknownProvider reports that no factory is registered for a provider
+// name.
 var ErrUnknownProvider = errors.New("unknown provider")
 
-// Factory creates a provider instance.
-type Factory func(apiKey string) (unicap.Provider, error)
+// Settings are the provider-independent options a Factory receives. Zero
+// fields keep the provider's defaults.
+type Settings struct {
+	// HTTPClient is the HTTP client for API requests.
+	HTTPClient *http.Client
 
-// Registry maps provider names to provider factories. It is safe for
-// concurrent use.
+	// Logger receives request diagnostics.
+	Logger *slog.Logger
+
+	// BaseURL overrides the provider's API root.
+	BaseURL string
+
+	// CallbackURL is the URL the provider notifies when a task finishes.
+	CallbackURL string
+}
+
+// Option configures the Settings passed to a Factory.
+type Option func(*Settings)
+
+// WithHTTPClient sets the HTTP client for API requests.
+func WithHTTPClient(httpClient *http.Client) Option {
+	return func(s *Settings) {
+		s.HTTPClient = httpClient
+	}
+}
+
+// WithLogger sets the logger for request diagnostics.
+func WithLogger(logger *slog.Logger) Option {
+	return func(s *Settings) {
+		s.Logger = logger
+	}
+}
+
+// WithBaseURL overrides the provider's API root.
+func WithBaseURL(baseURL string) Option {
+	return func(s *Settings) {
+		s.BaseURL = baseURL
+	}
+}
+
+// WithCallbackURL sets the URL the provider notifies when a task finishes.
+func WithCallbackURL(callbackURL string) Option {
+	return func(s *Settings) {
+		s.CallbackURL = callbackURL
+	}
+}
+
+// Factory creates a provider from an API key and settings.
+type Factory func(apiKey string, settings Settings) (unicap.Provider, error)
+
+// Registry maps provider names to factories. Its zero value is an empty
+// registry ready for use, and it is safe for concurrent use.
 type Registry struct {
 	mu        sync.RWMutex
 	factories map[string]Factory
@@ -29,24 +79,16 @@ type Registry struct {
 
 // NewRegistry creates a registry preloaded with the built-in providers.
 func NewRegistry() *Registry {
-	r := &Registry{
-		factories: make(map[string]Factory),
-	}
+	r := &Registry{}
 
-	r.Register("capsolver", func(apiKey string) (unicap.Provider, error) {
-		return capsolver.New(apiKey)
-	})
-	r.Register("2captcha", func(apiKey string) (unicap.Provider, error) {
-		return twocaptcha.New(apiKey)
-	})
-	r.Register("anticaptcha", func(apiKey string) (unicap.Provider, error) {
-		return anticaptcha.New(apiKey)
-	})
+	r.Register(capsolver.Name, newCapSolver)
+	r.Register(twocaptcha.Name, newTwoCaptcha)
+	r.Register(anticaptcha.Name, newAntiCaptcha)
 
 	return r
 }
 
-// Register adds or replaces a provider factory in the registry.
+// Register adds or replaces the factory for name.
 func (r *Registry) Register(name string, factory Factory) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
@@ -58,7 +100,7 @@ func (r *Registry) Register(name string, factory Factory) {
 	r.factories[name] = factory
 }
 
-// Get retrieves a provider factory by name.
+// Get returns the factory registered for name.
 func (r *Registry) Get(name string) (Factory, bool) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
@@ -82,12 +124,59 @@ func (r *Registry) Names() []string {
 	return names
 }
 
-// New creates a provider by name and API key.
-func (r *Registry) New(name, apiKey string) (unicap.Provider, error) {
+// New creates the provider registered as name.
+func (r *Registry) New(name, apiKey string, opts ...Option) (unicap.Provider, error) {
 	factory, ok := r.Get(name)
 	if !ok {
 		return nil, fmt.Errorf("%q: %w", name, ErrUnknownProvider)
 	}
 
-	return factory(apiKey)
+	var settings Settings
+	for _, opt := range opts {
+		opt(&settings)
+	}
+
+	return factory(apiKey, settings)
+}
+
+func newCapSolver(apiKey string, settings Settings) (unicap.Provider, error) {
+	client, err := capsolver.New(apiKey,
+		capsolver.WithHTTPClient(settings.HTTPClient),
+		capsolver.WithLogger(settings.Logger),
+		capsolver.WithBaseURL(settings.BaseURL),
+		capsolver.WithCallbackURL(settings.CallbackURL),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
+}
+
+func newTwoCaptcha(apiKey string, settings Settings) (unicap.Provider, error) {
+	client, err := twocaptcha.New(apiKey,
+		twocaptcha.WithHTTPClient(settings.HTTPClient),
+		twocaptcha.WithLogger(settings.Logger),
+		twocaptcha.WithBaseURL(settings.BaseURL),
+		twocaptcha.WithCallbackURL(settings.CallbackURL),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
+}
+
+func newAntiCaptcha(apiKey string, settings Settings) (unicap.Provider, error) {
+	client, err := anticaptcha.New(apiKey,
+		anticaptcha.WithHTTPClient(settings.HTTPClient),
+		anticaptcha.WithLogger(settings.Logger),
+		anticaptcha.WithBaseURL(settings.BaseURL),
+		anticaptcha.WithCallbackURL(settings.CallbackURL),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
 }

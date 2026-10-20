@@ -5,21 +5,31 @@ on:
     branches: [main]
   pull_request:
     branches: [main]
+  workflow_call:
+
+permissions:
+  contents: read
 
 jobs:
   check:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
-      - uses: actions/setup-go@v6
+      - uses: actions/setup-go@v7
         with:
           go-version-file: go.mod
+
+      - name: Tidy
+        run: go mod tidy -diff
 
       - name: Lint
         uses: golangci/golangci-lint-action@v9
         with:
-          version: v2.11.1
+          version: v2.14.0 # keep in sync with GOLANGCI_LINT_VERSION in the Makefile
+
+      - name: Vet
+        run: make vet
 
       - name: Build
         run: make build

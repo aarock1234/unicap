@@ -3,11 +3,11 @@ package solverapi
 import (
 	"fmt"
 
-	"github.com/aarock1234/unicap"
+	"github.com/aarock1234/unicap/v3"
 )
 
-// ProxyFields holds the proxy parameters shared by all solver-API task types.
-// Embed it in a provider task struct to gain the standard proxy JSON fields.
+// ProxyFields holds the discrete proxy parameters most providers accept.
+// Embed it in a provider task struct; the zero value is omitted from JSON.
 type ProxyFields struct {
 	ProxyType     string `json:"proxyType,omitempty"`
 	ProxyAddress  string `json:"proxyAddress,omitempty"`
@@ -16,29 +16,38 @@ type ProxyFields struct {
 	ProxyPassword string `json:"proxyPassword,omitempty"`
 }
 
-// ProxyFieldsFrom builds ProxyFields from a unicap proxy. A nil or unset proxy
-// yields the zero value, whose fields are omitted from JSON.
-func ProxyFieldsFrom(p *unicap.Proxy) ProxyFields {
-	if !p.IsSet() {
+// NewProxyFields converts a unicap proxy. A nil proxy yields the zero value.
+func NewProxyFields(proxy *unicap.Proxy) ProxyFields {
+	if proxy == nil {
 		return ProxyFields{}
 	}
 
 	return ProxyFields{
-		ProxyType:     string(p.Type),
-		ProxyAddress:  p.Address,
-		ProxyPort:     p.Port,
-		ProxyLogin:    p.Login,
-		ProxyPassword: p.Password,
+		ProxyType:     string(proxy.Type),
+		ProxyAddress:  proxy.Host,
+		ProxyPort:     proxy.Port,
+		ProxyLogin:    proxy.Username,
+		ProxyPassword: proxy.Password,
 	}
 }
 
-// ProxyString formats a proxy as "type:address:port:login:password" for
-// providers that accept a single proxy string instead of discrete fields. A nil
-// or unset proxy yields an empty string.
-func ProxyString(p *unicap.Proxy) string {
-	if !p.IsSet() {
+// ProxyURL formats a proxy as "scheme://user:pass@host:port" for providers
+// that take a single proxy string. Credentials are omitted when absent, and
+// a nil proxy yields an empty string.
+func ProxyURL(proxy *unicap.Proxy) string {
+	if proxy == nil {
 		return ""
 	}
 
-	return fmt.Sprintf("%s:%s:%d:%s:%s", p.Type, p.Address, p.Port, p.Login, p.Password)
+	return proxy.URL().String()
+}
+
+// RequireIPProxy reports an error when the proxy host is not a literal IP
+// address, for providers that reject hostnames.
+func RequireIPProxy(proxy *unicap.Proxy) error {
+	if proxy == nil || proxy.HostIsIP() {
+		return nil
+	}
+
+	return fmt.Errorf("Proxy.Host must be an IP address for this provider: %w", unicap.ErrUnsupportedOption)
 }
