@@ -38,12 +38,12 @@ Requires Go 1.27 or newer. If you're upgrading from v1 or v2, see [MIGRATION.md]
 
 ## Features
 
-- **One task model for every provider.** There are 51 typed tasks in [`tasks`](tasks), plus `RawTask` for anything unicap doesn't model yet.
-- **Strict mapping.** If you set an option the selected provider can't honour, the task fails with `unicap.ErrUnsupportedOption`. The option is never silently dropped.
-- **Typed results.** `Result` carries the task ID, cost, and timing. `Solution` exposes `Token`, `Text`, `UserAgent`, `Cookies`, `Coordinates`, `Boxes`, `Indexes`, and `Angle`. Family-specific payloads decode with `unicap.DecodeSolution`.
-- **Errors you can act on.** Provider error codes map to sentinels such as `ErrInsufficientFunds`, `ErrUnsolvable`, and `ErrProxy`. `unicap.IsRetryable` tells you whether resubmitting the task might succeed.
-- **Provider-aware polling.** Each provider's recommended pace is the default. Image tasks that a provider solves synchronously return immediately.
-- **Account features.** Check your balance, report correct or incorrect answers, and set affiliate IDs, callback URLs, and language pools.
+- **Tasks**: 51 typed captcha tasks that work across providers, plus `RawTask` for anything unicap doesn't model yet
+- **Strict**: options a provider can't honour return `ErrUnsupportedOption` instead of being silently dropped
+- **Results**: task ID, cost, and timing, with typed solutions for tokens, cookies, user agents, and coordinates
+- **Errors**: provider codes map to sentinels for `errors.Is`, and `unicap.IsRetryable` tells you when to resubmit
+- **Polling**: each provider's recommended pace by default, and instant results for tasks solved synchronously
+- **Account**: balance checks, answer reports, affiliate IDs, callback URLs, and language pools
 
 ## Usage
 
