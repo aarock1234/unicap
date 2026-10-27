@@ -13,6 +13,7 @@ import (
 	"github.com/aarock1234/unicap/v3"
 	"github.com/aarock1234/unicap/v3/provider/anticaptcha"
 	"github.com/aarock1234/unicap/v3/provider/capsolver"
+	"github.com/aarock1234/unicap/v3/provider/solvecha"
 	"github.com/aarock1234/unicap/v3/provider/twocaptcha"
 )
 
@@ -84,6 +85,7 @@ func NewRegistry() *Registry {
 	r.Register(capsolver.Name, newCapSolver)
 	r.Register(twocaptcha.Name, newTwoCaptcha)
 	r.Register(anticaptcha.Name, newAntiCaptcha)
+	r.Register(solvecha.Name, newSolvecha)
 
 	return r
 }
@@ -173,6 +175,19 @@ func newAntiCaptcha(apiKey string, settings Settings) (unicap.Provider, error) {
 		anticaptcha.WithLogger(settings.Logger),
 		anticaptcha.WithBaseURL(settings.BaseURL),
 		anticaptcha.WithCallbackURL(settings.CallbackURL),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
+}
+
+func newSolvecha(apiKey string, settings Settings) (unicap.Provider, error) {
+	client, err := solvecha.New(apiKey,
+		solvecha.WithHTTPClient(settings.HTTPClient),
+		solvecha.WithLogger(settings.Logger),
+		solvecha.WithBaseURL(settings.BaseURL),
 	)
 	if err != nil {
 		return nil, err

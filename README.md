@@ -4,7 +4,7 @@
 [![Release](https://img.shields.io/github/v/release/aarock1234/unicap)](https://github.com/aarock1234/unicap/releases)
 [![License](https://img.shields.io/badge/license-Elastic%202.0-blue.svg)](LICENSE)
 
-A universal captcha-solving SDK for Go. Write a task once and solve it with CapSolver, 2Captcha, Anti-Captcha, or your own provider. Results and errors look the same whichever provider you use.
+A universal captcha-solving SDK for Go. Write a task once and solve it with CapSolver, 2Captcha, Anti-Captcha, Solvecha, or your own provider. Results and errors look the same whichever provider you use.
 
 ```go
 provider, err := capsolver.New(os.Getenv("CAPSOLVER_API_KEY"))
@@ -171,15 +171,15 @@ solver, err := provider.NewRegistry().New("2captcha", apiKey,
 
 ### Provider options
 
-| Option                | CapSolver | 2Captcha | Anti-Captcha |
-| --------------------- | --------- | -------- | ------------ |
-| `WithHTTPClient`      | ✓         | ✓        | ✓            |
-| `WithLogger`          | ✓         | ✓        | ✓            |
-| `WithBaseURL`         | ✓         | ✓        | ✓            |
-| `WithCallbackURL`     | ✓         | ✓        | ✓            |
-| `WithAppID`           | ✓         | –        | –            |
-| `WithSoftID`          | –         | ✓        | ✓            |
-| `WithLanguagePool`    | –         | ✓        | per task     |
+| Option                | CapSolver | 2Captcha | Anti-Captcha | Solvecha |
+| --------------------- | --------- | -------- | ------------ | -------- |
+| `WithHTTPClient`      | ✓         | ✓        | ✓            | ✓        |
+| `WithLogger`          | ✓         | ✓        | ✓            | ✓        |
+| `WithBaseURL`         | ✓         | ✓        | ✓            | ✓        |
+| `WithCallbackURL`     | ✓         | ✓        | ✓            | –        |
+| `WithAppID`           | ✓         | –        | –            | –        |
+| `WithSoftID`          | –         | ✓        | ✓            | –        |
+| `WithLanguagePool`    | –         | ✓        | per task     | –        |
 
 The Anti-Captcha client also has `PushVariable` for AntiGate templates.
 
@@ -219,6 +219,8 @@ The Anti-Captcha client also has `PushVariable` for AntiGate templates.
 | `RawTask` (passthrough)                  | ✓         | ✓        | ✓            |
 
 ¹ All three providers have withdrawn hCaptcha support, so the built-in providers reject it. The task type remains available for custom providers.
+
+Solvecha solves pictures and text only (`ImageToTextTask`, `ReCaptchaClassificationTask`) and rejects token tasks. See [solvecha.com/docs](https://solvecha.com/docs).
 
 `client.Supports(taskType)` reports support at runtime.
 
