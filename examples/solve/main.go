@@ -1,7 +1,7 @@
 // Package main solves Google's reCAPTCHA v2 demo with a provider chosen at
 // runtime, then checks the balance and reports the result.
 //
-// Set CAPSOLVER_API_KEY, TWOCAPTCHA_API_KEY, or ANTICAPTCHA_API_KEY, then run:
+// Set the provider's API key variable, listed in apiKeyVariables, then run:
 //
 //	go run ./examples/solve -provider capsolver
 package main
@@ -26,6 +26,14 @@ var apiKeyVariables = map[string]string{
 	"capsolver":   "CAPSOLVER_API_KEY",
 	"2captcha":    "TWOCAPTCHA_API_KEY",
 	"anticaptcha": "ANTICAPTCHA_API_KEY",
+	"yescaptcha":  "YESCAPTCHA_API_KEY",
+	"capmonster":  "CAPMONSTER_API_KEY",
+	"capshot":     "CAPSHOT_API_KEY",
+	"noptcha":     "NOPTCHA_API_KEY",
+	"nonecap":     "NONECAP_API_KEY",
+	"easycaptcha": "EASYCAPTCHA_API_KEY",
+	"nopecha":     "NOPECHA_API_KEY",
+	"captchaai":   "CAPTCHAAI_API_KEY",
 }
 
 func main() {
@@ -36,7 +44,7 @@ func main() {
 }
 
 func run() error {
-	providerName := flag.String("provider", "capsolver", "provider name: capsolver, 2captcha, or anticaptcha")
+	providerName := flag.String("provider", "capsolver", "any registered provider name; see the README")
 	flag.Parse()
 
 	logger := slog.New(slog.NewTextHandler(os.Stderr, &slog.HandlerOptions{
@@ -51,14 +59,9 @@ func run() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 
-	balance, err := client.Balance(ctx)
-	if err != nil {
-		return fmt.Errorf("checking balance: %w", err)
+	if err := logBalance(ctx, client, logger); err != nil {
+		return err
 	}
-
-	logger.InfoContext(ctx, "account balance",
-		slog.Float64("usd", balance),
-	)
 
 	result, err := client.Solve(ctx, &tasks.ReCaptchaV2Task{
 		WebsiteURL: "https://www.google.com/recaptcha/api2/demo",
@@ -84,6 +87,27 @@ func run() error {
 	if err := client.Report(ctx, result, true); err != nil && !errors.Is(err, unicap.ErrUnsupportedOperation) {
 		return fmt.Errorf("reporting result: %w", err)
 	}
+
+	return nil
+}
+
+// logBalance logs the account balance in US dollars. A provider that keeps
+// no such balance is noted and skipped.
+func logBalance(ctx context.Context, client *unicap.Client, logger *slog.Logger) error {
+	balance, err := client.Balance(ctx)
+
+	switch {
+	case errors.Is(err, unicap.ErrUnsupportedOperation):
+		logger.InfoContext(ctx, "provider does not report a balance")
+
+		return nil
+	case err != nil:
+		return fmt.Errorf("checking balance: %w", err)
+	}
+
+	logger.InfoContext(ctx, "account balance",
+		slog.Float64("usd", balance),
+	)
 
 	return nil
 }

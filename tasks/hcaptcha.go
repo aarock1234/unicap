@@ -6,9 +6,10 @@ import (
 
 // HCaptchaTask solves an hCaptcha widget.
 //
-// CapSolver, 2Captcha, and Anti-Captcha have all withdrawn hCaptcha support,
-// so the built-in providers reject this task with unicap.ErrUnsupportedTask.
-// It remains available for custom providers.
+// Of the built-in providers, YesCaptcha, Noptcha, NoneCap, easycaptcha.to,
+// and NopeCHA solve it. CapSolver, 2Captcha, and Anti-Captcha have withdrawn
+// hCaptcha; they and the remaining built-in providers reject this task with
+// unicap.ErrUnsupportedTask.
 type HCaptchaTask struct {
 	// WebsiteURL is the page that shows the captcha.
 	WebsiteURL string

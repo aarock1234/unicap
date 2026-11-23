@@ -4,7 +4,7 @@
 [![Release](https://img.shields.io/github/v/release/aarock1234/unicap)](https://github.com/aarock1234/unicap/releases)
 [![License](https://img.shields.io/badge/license-Elastic%202.0-blue.svg)](LICENSE)
 
-A universal captcha-solving SDK for Go. Write a task once and solve it with CapSolver, 2Captcha, Anti-Captcha, or your own provider. Results and errors look the same whichever provider you use.
+A universal captcha-solving SDK for Go. Write a task once and solve it with any of eleven built-in providers, or your own. Results and errors look the same whichever provider you use.
 
 ```go
 provider, err := capsolver.New(os.Getenv("CAPSOLVER_API_KEY"))
@@ -182,7 +182,27 @@ solver, err := provider.NewRegistry().New("2captcha", apiKey,
 | `WithSoftID`          | –         | ✓        | ✓            |
 | `WithLanguagePool`    | –         | ✓        | per task     |
 
-The Anti-Captcha client also has `PushVariable` for AntiGate templates.
+The Anti-Captcha client also has `PushVariable` for AntiGate templates. The other built-in providers take `WithHTTPClient`, `WithLogger`, and `WithBaseURL`; CapMonster Cloud also takes `WithCallbackURL`.
+
+## Providers
+
+Each built-in provider has its own package and a name for `provider.NewRegistry().New`. Balance and Reports show whether `client.Balance` and `client.Report` work with it; a provider that counts points, credits, or threads has no dollar balance to report.
+
+| Package                | Provider         | Name          | Balance     | Reports        | Notes                                                                            |
+| ---------------------- | ---------------- | ------------- | ----------- | -------------- | -------------------------------------------------------------------------------- |
+| `provider/capsolver`   | CapSolver        | `capsolver`   | ✓           | ✓              |                                                                                  |
+| `provider/twocaptcha`  | 2Captcha         | `2captcha`    | ✓           | ✓              |                                                                                  |
+| `provider/anticaptcha` | Anti-Captcha     | `anticaptcha` | ✓           | ✓              |                                                                                  |
+| `provider/yescaptcha`  | YesCaptcha       | `yescaptcha`  | – (points)  | –              |                                                                                  |
+| `provider/capmonster`  | CapMonster Cloud | `capmonster`  | ✓           | incorrect only | Proxy hosts must be IP addresses.                                                |
+| `provider/capshot`     | Capshot          | `capshot`     | ✓           | –              | Only the task types its documentation specifies in full.                         |
+| `provider/noptcha`     | Noptcha          | `noptcha`     | ✓           | ✓              | Describes itself as pre-launch.                                                  |
+| `provider/nonecap`     | NoneCap          | `nonecap`     | – (credits) | ✓              | Open beta. hCaptcha only.                                                        |
+| `provider/easycaptcha` | easycaptcha.to   | `easycaptcha` | ✓           | ✓              | hCaptcha only.                                                                   |
+| `provider/nopecha`     | NopeCHA          | `nopecha`     | – (credits) | –              | Token tasks only. Task IDs read `<endpoint>:<job id>`; pass them back unchanged. |
+| `provider/captchaai`   | CaptchaAI        | `captchaai`   | – (threads) | –              | Task IDs read `<shape>:<task id>`; pass them back unchanged.                     |
+
+The eight providers from YesCaptcha to CaptchaAI were built from each vendor's documentation against its native API, not a compatibility endpoint, and have not been exercised against live accounts.
 
 ## Supported captchas
 
@@ -243,8 +263,6 @@ The Anti-Captcha client also has `PushVariable` for AntiGate templates.
 | `RawTask` (passthrough) | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ | ✓ |
 <!-- support-matrix:end -->
 
-¹ All three providers have withdrawn hCaptcha support, so the built-in providers reject it. The task type remains available for custom providers.
-
 `client.Supports(taskType)` reports support at runtime.
 
 ## Custom providers
@@ -263,7 +281,7 @@ Return provider failures as `*unicap.Error`, and wrap a sentinel in its `Err` fi
 
 ## Examples
 
-- [`examples/solve`](examples/solve): choose a provider at runtime, check the balance, solve, and report. Run it with `make example provider=2captcha` after setting `CAPSOLVER_API_KEY`, `TWOCAPTCHA_API_KEY`, or `ANTICAPTCHA_API_KEY`.
+- [`examples/solve`](examples/solve): choose a provider at runtime, check the balance, solve, and report. Run it with `make example provider=2captcha` after setting the provider's API key variable (see `apiKeyVariables` in the example).
 - [`examples/custom_provider`](examples/custom_provider): plug a custom provider into unicap.
 
 ## Development

@@ -84,7 +84,7 @@ Without `WithPolling`, the client uses the provider's recommended pace. A `Timeo
 - **reCAPTCHA v3.** `ReCaptchaV3Task.IsEnterprise` was removed; use `ReCaptchaV3EnterpriseTask`. `HighScore` selects CapSolver's high-score (M1) mode.
 - **reCAPTCHA v3 on 2Captcha and Anti-Captcha.** These providers now require `MinScore`.
 - **Anti-Captcha proxies.** Tasks that use a proxy need `UserAgent` for reCAPTCHA v2, FunCaptcha, and GeeTest, and the proxy host must be an IP address.
-- **hCaptcha.** `HCaptchaTask.EnterpriseData` was renamed to `EnterprisePayload`. The built-in providers no longer accept hCaptcha, because every provider has withdrawn it.
+- **hCaptcha.** `HCaptchaTask.EnterpriseData` was renamed to `EnterprisePayload`. CapSolver, 2Captcha and Anti-Captcha have withdrawn hCaptcha; the providers added in v3.2 (YesCaptcha, Noptcha, NoneCap, easycaptcha.to and NopeCHA) solve it.
 - **AWS WAF.** `AWSWAFTask` gained `JSAPIScript`, `ProblemURL`, `APIKey`, and `ExistingToken`. CapSolver now maps `awsApiJs` from `JSAPIScript`.
 
 ## Providers
