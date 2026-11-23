@@ -13,6 +13,7 @@ import (
 	"github.com/aarock1234/unicap/v3"
 	"github.com/aarock1234/unicap/v3/provider/anticaptcha"
 	"github.com/aarock1234/unicap/v3/provider/capmonster"
+	"github.com/aarock1234/unicap/v3/provider/capshot"
 	"github.com/aarock1234/unicap/v3/provider/capsolver"
 	"github.com/aarock1234/unicap/v3/provider/twocaptcha"
 	"github.com/aarock1234/unicap/v3/provider/yescaptcha"
@@ -88,6 +89,7 @@ func NewRegistry() *Registry {
 	r.Register(anticaptcha.Name, newAntiCaptcha)
 	r.Register(yescaptcha.Name, newYesCaptcha)
 	r.Register(capmonster.Name, newCapMonster)
+	r.Register(capshot.Name, newCapshot)
 
 	return r
 }
@@ -221,6 +223,24 @@ func newCapMonster(apiKey string, settings Settings) (unicap.Provider, error) {
 		capmonster.WithLogger(settings.Logger),
 		capmonster.WithBaseURL(settings.BaseURL),
 		capmonster.WithCallbackURL(settings.CallbackURL),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
+}
+
+// newCapshot creates a Capshot provider. Capshot has no callback option.
+func newCapshot(apiKey string, settings Settings) (unicap.Provider, error) {
+	if err := rejectCallback(capshot.Name, settings); err != nil {
+		return nil, err
+	}
+
+	client, err := capshot.New(apiKey,
+		capshot.WithHTTPClient(settings.HTTPClient),
+		capshot.WithLogger(settings.Logger),
+		capshot.WithBaseURL(settings.BaseURL),
 	)
 	if err != nil {
 		return nil, err
