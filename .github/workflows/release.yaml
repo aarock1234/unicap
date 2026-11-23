@@ -22,6 +22,15 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v7
 
+      - name: Check tag matches module major version
+        run: |
+          module_major="$(sed -n '1s#.*/\(v[0-9][0-9]*\)$#\1#p' go.mod)"
+          tag_major="${GITHUB_REF_NAME%%.*}"
+          if [ "${module_major:-v1}" != "$tag_major" ]; then
+            echo "tag $GITHUB_REF_NAME does not match module major version ${module_major:-v1}"
+            exit 1
+          fi
+
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v3
         with:
