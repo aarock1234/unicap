@@ -15,6 +15,7 @@ import (
 	"github.com/aarock1234/unicap/v3/provider/capmonster"
 	"github.com/aarock1234/unicap/v3/provider/capshot"
 	"github.com/aarock1234/unicap/v3/provider/capsolver"
+	"github.com/aarock1234/unicap/v3/provider/easycaptcha"
 	"github.com/aarock1234/unicap/v3/provider/nonecap"
 	"github.com/aarock1234/unicap/v3/provider/noptcha"
 	"github.com/aarock1234/unicap/v3/provider/twocaptcha"
@@ -94,6 +95,7 @@ func NewRegistry() *Registry {
 	r.Register(capshot.Name, newCapshot)
 	r.Register(noptcha.Name, newNoptcha)
 	r.Register(nonecap.Name, newNoneCap)
+	r.Register(easycaptcha.Name, newEasyCaptcha)
 
 	return r
 }
@@ -282,6 +284,25 @@ func newNoneCap(apiKey string, settings Settings) (unicap.Provider, error) {
 		nonecap.WithHTTPClient(settings.HTTPClient),
 		nonecap.WithLogger(settings.Logger),
 		nonecap.WithBaseURL(settings.BaseURL),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
+}
+
+// newEasyCaptcha creates an easycaptcha.to provider. easycaptcha.to has no
+// callback option.
+func newEasyCaptcha(apiKey string, settings Settings) (unicap.Provider, error) {
+	if err := rejectCallback(easycaptcha.Name, settings); err != nil {
+		return nil, err
+	}
+
+	client, err := easycaptcha.New(apiKey,
+		easycaptcha.WithHTTPClient(settings.HTTPClient),
+		easycaptcha.WithLogger(settings.Logger),
+		easycaptcha.WithBaseURL(settings.BaseURL),
 	)
 	if err != nil {
 		return nil, err
