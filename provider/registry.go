@@ -15,6 +15,7 @@ import (
 	"github.com/aarock1234/unicap/v3/provider/capmonster"
 	"github.com/aarock1234/unicap/v3/provider/capshot"
 	"github.com/aarock1234/unicap/v3/provider/capsolver"
+	"github.com/aarock1234/unicap/v3/provider/captchaai"
 	"github.com/aarock1234/unicap/v3/provider/easycaptcha"
 	"github.com/aarock1234/unicap/v3/provider/nonecap"
 	"github.com/aarock1234/unicap/v3/provider/nopecha"
@@ -98,6 +99,7 @@ func NewRegistry() *Registry {
 	r.Register(nonecap.Name, newNoneCap)
 	r.Register(easycaptcha.Name, newEasyCaptcha)
 	r.Register(nopecha.Name, newNopeCHA)
+	r.Register(captchaai.Name, newCaptchaAI)
 
 	return r
 }
@@ -323,6 +325,25 @@ func newNopeCHA(apiKey string, settings Settings) (unicap.Provider, error) {
 		nopecha.WithHTTPClient(settings.HTTPClient),
 		nopecha.WithLogger(settings.Logger),
 		nopecha.WithBaseURL(settings.BaseURL),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
+}
+
+// newCaptchaAI creates a CaptchaAI provider. CaptchaAI has no callback
+// option.
+func newCaptchaAI(apiKey string, settings Settings) (unicap.Provider, error) {
+	if err := rejectCallback(captchaai.Name, settings); err != nil {
+		return nil, err
+	}
+
+	client, err := captchaai.New(apiKey,
+		captchaai.WithHTTPClient(settings.HTTPClient),
+		captchaai.WithLogger(settings.Logger),
+		captchaai.WithBaseURL(settings.BaseURL),
 	)
 	if err != nil {
 		return nil, err

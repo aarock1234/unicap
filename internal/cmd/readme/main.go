@@ -22,6 +22,7 @@ import (
 	"github.com/aarock1234/unicap/v3/provider/capmonster"
 	"github.com/aarock1234/unicap/v3/provider/capshot"
 	"github.com/aarock1234/unicap/v3/provider/capsolver"
+	"github.com/aarock1234/unicap/v3/provider/captchaai"
 	"github.com/aarock1234/unicap/v3/provider/easycaptcha"
 	"github.com/aarock1234/unicap/v3/provider/nonecap"
 	"github.com/aarock1234/unicap/v3/provider/nopecha"
@@ -185,6 +186,11 @@ func newColumns() ([]column, error) {
 		return nil, fmt.Errorf("creating nopecha provider: %w", err)
 	}
 
+	captchaAI, err := captchaai.New(placeholderKey)
+	if err != nil {
+		return nil, fmt.Errorf("creating captchaai provider: %w", err)
+	}
+
 	return []column{
 		{
 			title:    "CapSolver",
@@ -225,6 +231,10 @@ func newColumns() ([]column, error) {
 		{
 			title:    "NopeCHA",
 			supports: nopeCHA.Supports,
+		},
+		{
+			title:    "CaptchaAI",
+			supports: captchaAI.Supports,
 		},
 	}, nil
 }
