@@ -41,18 +41,17 @@ func (c *Client) Call(ctx context.Context, method string, request Request, respo
 		return err
 	}
 
-	decodeErr := json.Unmarshal(responseBody, response)
-
-	if envelope := response.envelope(); decodeErr == nil && envelope.ErrorID != 0 {
-		return c.config.Errors.classify(c.config.Name, envelope)
+	var envelope Envelope
+	if err := json.Unmarshal(responseBody, &envelope); err == nil && envelope.ErrorID != 0 {
+		return c.config.Errors.classify(c.config.Name, &envelope)
 	}
 
 	if statusCode != http.StatusOK {
 		return c.statusError(method, statusCode)
 	}
 
-	if decodeErr != nil {
-		return fmt.Errorf("%s %s: decoding response: %w", c.config.Name, method, decodeErr)
+	if err := json.Unmarshal(responseBody, response); err != nil {
+		return fmt.Errorf("%s %s: decoding response: %w", c.config.Name, method, err)
 	}
 
 	return nil
