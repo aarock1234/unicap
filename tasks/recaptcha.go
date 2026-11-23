@@ -114,7 +114,8 @@ type ReCaptchaV3Task struct {
 	PageAction string
 
 	// MinScore is the minimum score the token should achieve, between 0 and
-	// 1. Zero leaves the choice to the provider.
+	// 1. 2Captcha and Anti-Captcha require it and document 0.3, 0.7, and 0.9;
+	// CapSolver does not accept it.
 	MinScore float64
 
 	// HighScore requests a provider's premium high-score solving mode.
@@ -160,7 +161,8 @@ type ReCaptchaV3EnterpriseTask struct {
 	PageAction string
 
 	// MinScore is the minimum score the token should achieve, between 0 and
-	// 1. Zero leaves the choice to the provider.
+	// 1. 2Captcha and Anti-Captcha require it and document 0.3, 0.7, and 0.9;
+	// CapSolver does not accept it.
 	MinScore float64
 
 	// HighScore requests a provider's premium high-score solving mode.

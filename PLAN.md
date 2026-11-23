@@ -347,6 +347,9 @@ These are things the docs contradict or don't say. The implementation should han
 - **CapSolver casing.** CapSolver spells type names inconsistently (`GeeTestTaskProxyLess` / `GeetestTaskProxyless`, `DatadomeSliderTask` / `DataDomeSliderTask`). Use the spelling from each page's type table.
 - **CapSolver callback format.** The `callbackUrl` payload is not documented. Expose the option, but don't parse callbacks yet.
 - **2Captcha hCaptcha.** 2Captcha's hCaptcha removal is inferred: the page now returns 404 and the maintainer says so in [Furry/2captcha#55](https://github.com/Furry/2captcha/issues/55). There is no official notice.
-- **2Captcha Temu type name.** The Temu page contradicts itself (`TemuImageTask` vs `TemuCaptchaTask`). Leave it to `RawTask` until this is settled.
+- **2Captcha Temu type name.** Settled: the page uses `TemuImageTask` throughout (checked November 2026), which is what the mapper sends.
 - **Anti-Captcha numeric fields.** Anti-Captcha returns `cost` and `solveCount` as strings even though the docs call them numbers. Decode both forms.
 - **Anti-Captcha proxy credentials.** Whether `proxyLogin` and `proxyPassword` are required on the newer proxy task types is unclear. Treat them as optional.
+- **CapSolver feedbackTask.** The page is gone from the live docs; an archived copy from January 2025 documents `taskId` and `result.invalid`, which is not what `provider/capsolver/report.go` sends.
+- **2Captcha https proxies.** The docs list `http`, `socks4` and `socks5` only; unicap sends `https` as-is.
+- **2Captcha Imperva, Alibaba and Basilisk spellings.** Tables say `IncapsulaTask` and `websiteURL`; examples say `ImpervaTask` and `websiteUrl`. The mappers follow the tables.

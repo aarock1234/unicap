@@ -102,11 +102,17 @@ func (p *customProvider) GetTaskResult(ctx context.Context, taskID string) (*uni
 		}, nil
 	}
 
+	var solution solutionData
+	if err := json.Unmarshal(response.Solution, &solution); err != nil {
+		return nil, fmt.Errorf("decoding solution: %w", err)
+	}
+
 	return &unicap.Result{
 		TaskID: taskID,
 		Status: unicap.TaskStatusReady,
 		Solution: unicap.Solution{
-			Token: response.Solution.Token,
+			Token: solution.Token,
+			Raw:   response.Solution,
 		},
 	}, nil
 }
@@ -175,10 +181,10 @@ type getResultRequest struct {
 }
 
 type getResultResponse struct {
-	Status    string       `json:"status"`
-	Solution  solutionData `json:"solution"`
-	Error     string       `json:"error"`
-	ErrorCode string       `json:"errorCode"`
+	Status    string          `json:"status"`
+	Solution  json.RawMessage `json:"solution"`
+	Error     string          `json:"error"`
+	ErrorCode string          `json:"errorCode"`
 }
 
 type solutionData struct {

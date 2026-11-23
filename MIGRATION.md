@@ -64,13 +64,13 @@ token := result.Solution.Token
 `Poller`, `PollerConfig`, `NewPoller`, `WithPoller`, and `WithPollerLogger` are replaced by `unicap.Polling` and `unicap.WithPolling`:
 
 ```go
-polling := unicap.DefaultPolling()
+polling := provider.RecommendedPolling()
 polling.Timeout = 2 * time.Minute
 
 client, err := unicap.New(provider, unicap.WithPolling(polling))
 ```
 
-Without `WithPolling`, the client uses the provider's recommended pace. A `Timeout` of zero now means "rely on the context" rather than "expire immediately".
+Without `WithPolling`, the client uses the provider's recommended pace. A `Timeout` of zero now means "rely on the context" rather than "expire immediately". Start from the provider's `RecommendedPolling()` rather than `unicap.DefaultPolling()`, so that changing one setting keeps the provider's pace.
 
 ## Proxies
 

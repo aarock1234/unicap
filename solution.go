@@ -33,6 +33,8 @@ type Solution struct {
 	Boxes []Box
 
 	// Indexes are the selected tiles for grid and classification captchas.
+	// The base is the provider's: 2Captcha grid answers count from 1,
+	// CapSolver classification answers from 0.
 	Indexes []int
 
 	// Angle is the rotation in degrees for rotate captchas.

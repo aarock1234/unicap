@@ -75,6 +75,8 @@ if !created.Ready() {
 
 `client.GetTaskResult(ctx, taskID)` checks the task once without waiting.
 
+Results from `Wait` and `GetTaskResult` carry no `Task`. Set `result.Task = task` before passing one to `client.Report`; CapSolver and Anti-Captcha need the original task.
+
 ### Cookies, user agents, and family-specific solutions
 
 ```go
@@ -114,12 +116,11 @@ if err != nil {
 task := &tasks.ReCaptchaV2Task{
 	WebsiteURL: "https://example.com",
 	WebsiteKey: siteKey,
-	UserAgent:  userAgent,
 	Proxy:      proxy,
 }
 ```
 
-A nil `Proxy` means the provider solves the task from its own network. When you log a `*unicap.Proxy` or print it with `String`, the password is redacted.
+A nil `Proxy` means the provider solves the task from its own network. When you log a `*unicap.Proxy` or print it with `String`, the password is redacted. Providers differ on `UserAgent` with a proxy: Anti-Captcha requires it, and CapSolver does not accept it on reCAPTCHA v2.
 
 ### Errors and retries
 
@@ -163,11 +164,11 @@ solver, err := provider.NewRegistry().New("2captcha", apiKey,
 
 ### Client options
 
-| Option                          | Effect                                                                       |
-| ------------------------------- | ---------------------------------------------------------------------------- |
-| `unicap.WithLogger(logger)`     | Logs task lifecycle events. Logs are discarded by default.                   |
-| `unicap.WithPolling(polling)`   | Overrides the provider's recommended polling. Start from `unicap.DefaultPolling()`. |
-| `unicap.WithSolveRetries(n)`    | Resubmits up to `n` times after retryable failures.                          |
+| Option                          | Effect                                                                                           |
+| ------------------------------- | ------------------------------------------------------------------------------------------------ |
+| `unicap.WithLogger(logger)`     | Logs task lifecycle events. Logs are discarded by default.                                       |
+| `unicap.WithPolling(polling)`   | Overrides the provider's recommended polling. Start from the provider's `RecommendedPolling()`.  |
+| `unicap.WithSolveRetries(n)`    | Resubmits up to `n` times when a failure leaves no task running, spaced by the polling interval. |
 
 ### Provider options
 
