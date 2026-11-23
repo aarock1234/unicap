@@ -383,7 +383,10 @@ func (t *BoundingBoxTask) Validate() error {
 }
 
 // DragAndDropTask asks a worker where to drop each piece onto a background.
-// The drop points are in unicap.Solution.Coordinates, in Images order.
+// Decode the result with unicap.DecodeSolution[DragAndDropSolution]; the drop
+// points are in Images order, and a piece left in place has no point.
+// unicap.Solution.Coordinates cannot represent an unmoved piece and reports it
+// as (0, 0).
 type DragAndDropTask struct {
 	// Background is the base64-encoded background image.
 	Background string
@@ -406,6 +409,13 @@ func (t *DragAndDropTask) Validate() error {
 		required("Background", t.Background),
 		requiredItems("Images", t.Images),
 	)
+}
+
+// DragAndDropSolution is the decoded payload of a DragAndDropTask.
+type DragAndDropSolution struct {
+	// Coordinates are the drop points in Images order. A nil entry is a
+	// piece the worker left in place.
+	Coordinates []*unicap.Coordinate `json:"coordinates"`
 }
 
 // TemuTask solves a Temu puzzle. The piece positions are in

@@ -136,6 +136,12 @@ func mapGeeTest(task *tasks.GeeTestTask) (geeTestTask, error) {
 }
 
 func mapGeeTestV4(task *tasks.GeeTestV4Task) (geeTestTask, error) {
+	if err := solverapi.Unsupported(
+		solverapi.Setting("APIServerSubdomain", task.APIServerSubdomain != ""),
+	); err != nil {
+		return geeTestTask{}, err
+	}
+
 	taskType, err := variant("GeeTestTask").For(task.Proxy)
 	if err != nil {
 		return geeTestTask{}, err
@@ -148,10 +154,9 @@ func mapGeeTestV4(task *tasks.GeeTestV4Task) (geeTestTask, error) {
 		InitParameters: &geeTestParams{
 			CaptchaID: task.CaptchaID,
 		},
-		RiskType:                  task.RiskType,
-		GeetestAPIServerSubdomain: task.APIServerSubdomain,
-		UserAgent:                 task.UserAgent,
-		ProxyFields:               solverapi.NewProxyFields(task.Proxy),
+		RiskType:    task.RiskType,
+		UserAgent:   task.UserAgent,
+		ProxyFields: solverapi.NewProxyFields(task.Proxy),
 	}, nil
 }
 

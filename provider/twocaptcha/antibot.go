@@ -77,12 +77,6 @@ type alibabaTask struct {
 	solverapi.ProxyFields
 }
 
-// binanceVariant spells the proxyless type exactly as 2Captcha documents it.
-var binanceVariant = solverapi.Variant{
-	Proxyless: "BinanceTaskproxyless",
-	Proxy:     "BinanceTask",
-}
-
 func mapVKCaptcha(task *tasks.VKCaptchaTask) (vkCaptchaTask, error) {
 	taskType, err := proxyOnly("VKCaptchaTask").For(task.Proxy)
 	if err != nil {
@@ -118,7 +112,7 @@ func mapYidun(task *tasks.YidunTask) (yidunTask, error) {
 }
 
 func mapBinance(task *tasks.BinanceTask) (binanceTask, error) {
-	taskType, err := binanceVariant.For(task.Proxy)
+	taskType, err := variant("BinanceTask").For(task.Proxy)
 	if err != nil {
 		return binanceTask{}, err
 	}
