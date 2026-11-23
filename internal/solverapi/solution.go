@@ -51,7 +51,7 @@ func (f solutionFields) fill(solution *unicap.Solution) {
 	solution.Token = f.firstString("gRecaptchaResponse", "token")
 	solution.Text = f.firstString("text")
 	solution.UserAgent = f.firstString("userAgent")
-	solution.Cookies = f.cookies()
+	solution.Cookies = append(f.cookies(), f.sessionCookies()...)
 	solution.Coordinates = f.coordinates()
 	solution.Boxes = f.boxes()
 	solution.Indexes = f.indexes()
@@ -122,6 +122,33 @@ func (f solutionFields) cookies() []*http.Cookie {
 type namedCookie struct {
 	Name  string `json:"name"`
 	Value string `json:"value"`
+}
+
+// sessionCookieNames are solution fields CapSolver returns for reCAPTCHA
+// tasks solved with isSession; each is a cookie of the same name.
+var sessionCookieNames = []string{
+	"recaptcha-ca-t",
+	"recaptcha-ca-e",
+}
+
+// sessionCookies returns a cookie for every session field that holds a
+// non-empty string.
+func (f solutionFields) sessionCookies() []*http.Cookie {
+	var cookies []*http.Cookie
+
+	for _, name := range sessionCookieNames {
+		value := f.firstString(name)
+		if value == "" {
+			continue
+		}
+
+		cookies = append(cookies, &http.Cookie{
+			Name:  name,
+			Value: value,
+		})
+	}
+
+	return cookies
 }
 
 // setCookieAttributes are the lowercase attribute names that mark a cookie

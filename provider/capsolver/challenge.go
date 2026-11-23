@@ -25,6 +25,8 @@ type cloudflareChallengeTask struct {
 	Proxy      string `json:"proxy"`
 }
 
+// dataDomeTask is CapSolver's DataDome task. It has no website URL field, so
+// tasks.DataDomeTask.WebsiteURL is not sent.
 type dataDomeTask struct {
 	Type       string `json:"type"`
 	CaptchaURL string `json:"captchaUrl"`
@@ -88,6 +90,9 @@ func mapCloudflareChallenge(task *tasks.CloudflareChallengeTask) (cloudflareChal
 	}, nil
 }
 
+// mapDataDome builds CapSolver's DataDome task. CapSolver's page spells the
+// type both DatadomeSliderTask and DataDomeSliderTask; this follows the
+// request example.
 func mapDataDome(task *tasks.DataDomeTask) (dataDomeTask, error) {
 	return dataDomeTask{
 		Type:       "DatadomeSliderTask",

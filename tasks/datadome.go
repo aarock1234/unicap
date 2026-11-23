@@ -8,7 +8,8 @@ import (
 // unicap.Solution.Cookies. Use the same proxy and User-Agent for follow-up
 // requests.
 type DataDomeTask struct {
-	// WebsiteURL is the protected page.
+	// WebsiteURL is the protected page. CapSolver does not take it and works
+	// from CaptchaURL alone.
 	WebsiteURL string
 
 	// CaptchaURL is the captcha iframe URL. Its "t" parameter must be "fe";

@@ -109,6 +109,7 @@ var errorRules = solverapi.ErrorRules{
 	"ERROR_ZERO_BALANCE":        unicap.ErrInsufficientFunds,
 	"ERROR_SETTLEMENT_FAILED":   unicap.ErrInsufficientFunds,
 	"ERROR_TASKID_INVALID":      unicap.ErrTaskNotFound,
+	"ERROR_BAD_REQUEST":         unicap.ErrInvalidTask,
 	"ERROR_INVALID_TASK_DATA":   unicap.ErrInvalidTask,
 	"ERROR_UNKNOWN_QUESTION":    unicap.ErrInvalidTask,
 	"ERROR_INVALID_IMAGE":       unicap.ErrInvalidTask,
