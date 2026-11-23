@@ -32,6 +32,10 @@ type feedbackResponse struct {
 // CapSolver needs the original task, so result must come from a
 // unicap.Client call that set Result.Task.
 func (c *Client) Report(ctx context.Context, result *unicap.Result, correct bool) error {
+	if result == nil {
+		return fmt.Errorf("report needs a result: %w", unicap.ErrInvalidTask)
+	}
+
 	if result.Task == nil {
 		return fmt.Errorf("capsolver feedback needs the original task: %w", unicap.ErrInvalidTask)
 	}

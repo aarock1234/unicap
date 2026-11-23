@@ -14,10 +14,11 @@ type Provider interface {
 
 	// CreateTask submits a task. The returned result carries the task ID and,
 	// for providers that solve some tasks synchronously, may already be
-	// ready.
+	// ready. A nil error must come with a non-nil result.
 	CreateTask(ctx context.Context, task Task) (*Result, error)
 
-	// GetTaskResult returns the current state of a submitted task.
+	// GetTaskResult returns the current state of a submitted task. A nil
+	// error must come with a non-nil result.
 	GetTaskResult(ctx context.Context, taskID string) (*Result, error)
 }
 

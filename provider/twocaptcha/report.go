@@ -2,6 +2,7 @@ package twocaptcha
 
 import (
 	"context"
+	"fmt"
 
 	"github.com/aarock1234/unicap/v3"
 	"github.com/aarock1234/unicap/v3/internal/solverapi"
@@ -22,6 +23,10 @@ type reportResponse struct {
 // Report tells 2Captcha whether result's solution was accepted. Incorrect
 // reports are reviewed and may be refunded.
 func (c *Client) Report(ctx context.Context, result *unicap.Result, correct bool) error {
+	if result == nil {
+		return fmt.Errorf("report needs a result: %w", unicap.ErrInvalidTask)
+	}
+
 	taskID, err := c.api.EncodeTaskID(result.TaskID)
 	if err != nil {
 		return err

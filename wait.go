@@ -47,6 +47,9 @@ func (c *Client) wait(ctx context.Context, taskID string) (*Result, error) {
 		case err != nil:
 			return nil, fmt.Errorf("waiting for task %s: %w", taskID, err)
 
+		case result == nil:
+			return nil, fmt.Errorf("waiting for task %s: %w", taskID, c.missingResult())
+
 		case result.Ready():
 			c.logger.DebugContext(ctx, "task ready",
 				slog.String("provider", c.provider.Name()),

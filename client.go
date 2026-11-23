@@ -107,6 +107,10 @@ func (c *Client) CreateTask(ctx context.Context, task Task) (*Result, error) {
 		return nil, fmt.Errorf("creating %s task: %w", task.Type(), err)
 	}
 
+	if result == nil {
+		return nil, c.missingResult()
+	}
+
 	result.Task = task
 
 	c.logger.DebugContext(ctx, "task created",
@@ -124,6 +128,10 @@ func (c *Client) GetTaskResult(ctx context.Context, taskID string) (*Result, err
 	result, err := c.provider.GetTaskResult(ctx, taskID)
 	if err != nil {
 		return nil, fmt.Errorf("getting task result %s: %w", taskID, err)
+	}
+
+	if result == nil {
+		return nil, c.missingResult()
 	}
 
 	return result, nil
@@ -210,6 +218,17 @@ func (c *Client) solveOnce(ctx context.Context, task Task) (result *Result, resu
 	result.Task = task
 
 	return result, false, nil
+}
+
+// missingResult reports a provider that returned neither a result nor an
+// error.
+func (c *Client) missingResult() *Error {
+	return &Error{
+		Provider: c.provider.Name(),
+		Code:     "NO_RESULT",
+		Message:  "provider returned no result and no error",
+		Err:      ErrTaskFailed,
+	}
 }
 
 // recommendedPolling returns the provider's polling recommendation, or the

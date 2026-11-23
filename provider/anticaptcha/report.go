@@ -32,6 +32,10 @@ type statusResponse struct {
 // Anti-Captcha accepts reports for reCAPTCHA tasks, and incorrect reports
 // for image-to-text tasks; result must carry its task to pick the endpoint.
 func (c *Client) Report(ctx context.Context, result *unicap.Result, correct bool) error {
+	if result == nil {
+		return fmt.Errorf("report needs a result: %w", unicap.ErrInvalidTask)
+	}
+
 	if result.Task == nil {
 		return fmt.Errorf("anti-captcha reports need the original task: %w", unicap.ErrInvalidTask)
 	}
