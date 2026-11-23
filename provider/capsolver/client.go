@@ -76,6 +76,10 @@ func New(apiKey string, opts ...Option) (*Client, error) {
 		Mappers:      mappers,
 		Errors:       errorRules,
 		Polling:      polling,
+		Extras: []solverapi.Extra{
+			solverapi.ExtraAppID,
+			solverapi.ExtraCallbackURL,
+		},
 	}
 
 	api, err := solverapi.New(config, opts...)

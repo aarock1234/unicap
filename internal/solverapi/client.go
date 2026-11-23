@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"log/slog"
 	"net/http"
+	"slices"
 	"time"
 
 	"github.com/aarock1234/unicap/v3"
@@ -50,7 +51,28 @@ type Config struct {
 
 	// Polling is the provider's recommended polling pace.
 	Polling unicap.Polling
+
+	// Extras are the optional top-level createTask fields the provider
+	// accepts.
+	Extras []Extra
 }
+
+// Extra is an optional top-level createTask field.
+type Extra string
+
+const (
+	// ExtraAppID is the developer appId.
+	ExtraAppID Extra = "app id"
+
+	// ExtraSoftID is the developer softId.
+	ExtraSoftID Extra = "soft id"
+
+	// ExtraCallbackURL is the URL the provider notifies when a task finishes.
+	ExtraCallbackURL Extra = "callback url"
+
+	// ExtraLanguagePool is the worker language pool.
+	ExtraLanguagePool Extra = "language pool"
+)
 
 // Client is a provider client for the createTask / getTaskResult protocol.
 // It is safe for concurrent use.
@@ -67,6 +89,30 @@ type taskExtras struct {
 	softID       int
 	callbackURL  string
 	languagePool string
+}
+
+// set returns the extras that carry a value, in the order their constants
+// are declared. An empty string or a zero number means the extra is not set.
+func (e taskExtras) set() []Extra {
+	var extras []Extra
+
+	if e.appID != "" {
+		extras = append(extras, ExtraAppID)
+	}
+
+	if e.softID != 0 {
+		extras = append(extras, ExtraSoftID)
+	}
+
+	if e.callbackURL != "" {
+		extras = append(extras, ExtraCallbackURL)
+	}
+
+	if e.languagePool != "" {
+		extras = append(extras, ExtraLanguagePool)
+	}
+
+	return extras
 }
 
 // New creates a client for the provider described by config.
@@ -89,6 +135,12 @@ func New(config Config, opts ...Option) (*Client, error) {
 
 	if c.extras.softID < 0 {
 		return nil, errors.New("soft id must not be negative")
+	}
+
+	for _, extra := range c.extras.set() {
+		if !slices.Contains(config.Extras, extra) {
+			return nil, fmt.Errorf("%s does not accept a %s: %w", config.Name, extra, unicap.ErrUnsupportedOption)
+		}
 	}
 
 	return c, nil
