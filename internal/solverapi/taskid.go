@@ -3,10 +3,9 @@ package solverapi
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"strconv"
-
-	"github.com/aarock1234/unicap/v3"
 )
 
 // TaskID is a provider task identifier. It decodes from either a JSON string
@@ -58,10 +57,11 @@ const (
 	TaskIDNumber
 )
 
-// encode converts taskID to the JSON value the format requires.
+// encode converts taskID to the JSON value the format requires. Its errors
+// describe the malformed ID; the caller decides how to classify them.
 func (f TaskIDFormat) encode(taskID string) (any, error) {
 	if taskID == "" {
-		return nil, fmt.Errorf("task id is empty: %w", unicap.ErrTaskNotFound)
+		return nil, errors.New("task id is empty")
 	}
 
 	if f == TaskIDString {
@@ -69,7 +69,7 @@ func (f TaskIDFormat) encode(taskID string) (any, error) {
 	}
 
 	if _, err := strconv.ParseUint(taskID, 10, 64); err != nil {
-		return nil, fmt.Errorf("task id %q is not numeric: %w", taskID, unicap.ErrTaskNotFound)
+		return nil, fmt.Errorf("task id %q is not numeric", taskID)
 	}
 
 	return json.Number(taskID), nil

@@ -210,11 +210,12 @@ func (c *Client) TaskPayload(task unicap.Task) (any, error) {
 	return c.taskPayload(task)
 }
 
-// EncodeTaskID converts a task ID to the JSON value the provider expects.
+// EncodeTaskID converts a task ID to the JSON value the provider expects. A
+// malformed ID is a final provider error wrapping unicap.ErrTaskNotFound.
 func (c *Client) EncodeTaskID(taskID string) (any, error) {
 	encoded, err := c.config.TaskIDFormat.encode(taskID)
 	if err != nil {
-		return nil, fmt.Errorf("%s: %w", c.config.Name, err)
+		return nil, c.providerError("INVALID_TASK_ID", err.Error(), unicap.ErrTaskNotFound)
 	}
 
 	return encoded, nil

@@ -10,6 +10,8 @@ import (
 	"net/http"
 	"strconv"
 	"time"
+
+	"github.com/aarock1234/unicap/v3"
 )
 
 // maxResponseBytes bounds a response body. Solutions can embed page HTML or
@@ -20,18 +22,23 @@ const maxResponseBytes = 16 << 20
 // response. A non-zero errorId becomes a *unicap.Error classified by the
 // provider's error rules, whatever the HTTP status. Server errors and rate
 // limits without an error envelope are returned as plain transport errors so
-// pollers treat them as transient.
+// pollers treat them as transient. A request that cannot be encoded or built,
+// and a response over the size limit, are final provider errors.
 func (c *Client) Call(ctx context.Context, method string, request Request, response Response) error {
 	request.authenticate(c.config.APIKey)
 
 	body, err := json.Marshal(request)
 	if err != nil {
-		return fmt.Errorf("%s %s: encoding request: %w", c.config.Name, method, err)
+		return c.providerError(
+			"INVALID_REQUEST",
+			fmt.Sprintf("%s: encoding request: %v", method, err),
+			unicap.ErrInvalidTask,
+		)
 	}
 
 	statusCode, responseBody, err := c.post(ctx, method, body)
 	if err != nil {
-		return fmt.Errorf("%s %s: %w", c.config.Name, method, err)
+		return err
 	}
 
 	decodeErr := json.Unmarshal(responseBody, response)
@@ -52,30 +59,33 @@ func (c *Client) Call(ctx context.Context, method string, request Request, respo
 }
 
 // post sends one request and returns the status code and the bounded body.
+// Failures to send the request or read the response are plain errors, which
+// callers treat as transient; every other failure is a final provider error.
 func (c *Client) post(ctx context.Context, method string, body []byte) (int, []byte, error) {
-	request, err := http.NewRequestWithContext(ctx, http.MethodPost, c.config.BaseURL+"/"+method, bytes.NewReader(body))
+	request, err := c.newRequest(ctx, method, body)
 	if err != nil {
-		return 0, nil, fmt.Errorf("creating request: %w", err)
+		return 0, nil, err
 	}
-
-	request.Header.Set("Content-Type", "application/json")
-	request.Header.Set("Accept", "application/json")
 
 	started := time.Now()
 
 	response, err := c.http.Do(request)
 	if err != nil {
-		return 0, nil, fmt.Errorf("sending request: %w", err)
+		return 0, nil, fmt.Errorf("%s %s: sending request: %w", c.config.Name, method, err)
 	}
 	defer func() { _ = response.Body.Close() }()
 
 	responseBody, err := io.ReadAll(io.LimitReader(response.Body, maxResponseBytes+1))
 	if err != nil {
-		return 0, nil, fmt.Errorf("reading response: %w", err)
+		return 0, nil, fmt.Errorf("%s %s: reading response: %w", c.config.Name, method, err)
 	}
 
 	if len(responseBody) > maxResponseBytes {
-		return 0, nil, fmt.Errorf("response exceeds %d bytes", maxResponseBytes)
+		return 0, nil, c.providerError(
+			"RESPONSE_TOO_LARGE",
+			fmt.Sprintf("%s response exceeds %d bytes", method, maxResponseBytes),
+			nil,
+		)
 	}
 
 	c.logger.DebugContext(ctx, "provider request finished",
@@ -86,6 +96,24 @@ func (c *Client) post(ctx context.Context, method string, body []byte) (int, []b
 	)
 
 	return response.StatusCode, responseBody, nil
+}
+
+// newRequest builds the JSON POST request for the named API method. A request
+// that cannot be built is a final provider error.
+func (c *Client) newRequest(ctx context.Context, method string, body []byte) (*http.Request, error) {
+	request, err := http.NewRequestWithContext(ctx, http.MethodPost, c.config.BaseURL+"/"+method, bytes.NewReader(body))
+	if err != nil {
+		return nil, c.providerError(
+			"INVALID_REQUEST",
+			fmt.Sprintf("%s: creating request: %v", method, err),
+			nil,
+		)
+	}
+
+	request.Header.Set("Content-Type", "application/json")
+	request.Header.Set("Accept", "application/json")
+
+	return request, nil
 }
 
 // statusError reports an HTTP failure without an error envelope. Server

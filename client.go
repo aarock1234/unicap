@@ -119,8 +119,13 @@ func (c *Client) GetTaskResult(ctx context.Context, taskID string) (*Result, err
 }
 
 // Wait polls a submitted task until its solution is ready, the context is
-// canceled, or polling times out.
+// canceled, or polling times out. An empty task ID fails immediately with
+// ErrTaskNotFound.
 func (c *Client) Wait(ctx context.Context, taskID string) (*Result, error) {
+	if taskID == "" {
+		return nil, fmt.Errorf("task id is empty: %w", ErrTaskNotFound)
+	}
+
 	return c.wait(ctx, taskID)
 }
 
