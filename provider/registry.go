@@ -139,6 +139,18 @@ func (r *Registry) New(name, apiKey string, opts ...Option) (unicap.Provider, er
 	return factory(apiKey, settings)
 }
 
+// rejectCallback reports ErrUnsupportedOption when a callback URL is set for
+// a provider that has no callback option.
+//
+//nolint:unused // called by the provider factories added next.
+func rejectCallback(name string, settings Settings) error {
+	if settings.CallbackURL == "" {
+		return nil
+	}
+
+	return fmt.Errorf("%s does not accept a callback url: %w", name, unicap.ErrUnsupportedOption)
+}
+
 func newCapSolver(apiKey string, settings Settings) (unicap.Provider, error) {
 	client, err := capsolver.New(apiKey,
 		capsolver.WithHTTPClient(settings.HTTPClient),

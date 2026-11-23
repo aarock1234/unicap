@@ -7,6 +7,7 @@ package solverapi
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log/slog"
@@ -15,6 +16,7 @@ import (
 	"time"
 
 	"github.com/aarock1234/unicap/v3"
+	"github.com/aarock1234/unicap/v3/internal/httpapi"
 	"github.com/aarock1234/unicap/v3/tasks"
 )
 
@@ -55,6 +57,10 @@ type Config struct {
 	// Extras are the optional top-level createTask fields the provider
 	// accepts.
 	Extras []Extra
+
+	// RefineSolution, when set, fills solution fields the shared decoder
+	// does not know from the provider's raw solution payload.
+	RefineSolution func(raw json.RawMessage, solution *unicap.Solution)
 }
 
 // Extra is an optional top-level createTask field.
@@ -77,10 +83,11 @@ const (
 // Client is a provider client for the createTask / getTaskResult protocol.
 // It is safe for concurrent use.
 type Client struct {
-	config Config
-	http   *http.Client
-	logger *slog.Logger
-	extras taskExtras
+	config    Config
+	http      *http.Client
+	logger    *slog.Logger
+	transport *httpapi.Client
+	extras    taskExtras
 }
 
 // taskExtras are optional top-level createTask fields.
@@ -143,6 +150,15 @@ func New(config Config, opts ...Option) (*Client, error) {
 		}
 	}
 
+	c.transport = httpapi.New(
+		httpapi.Config{
+			Name:    c.config.Name,
+			BaseURL: c.config.BaseURL,
+		},
+		httpapi.WithHTTPClient(c.http),
+		httpapi.WithLogger(c.logger),
+	)
+
 	return c, nil
 }
 
@@ -176,7 +192,7 @@ func (c *Client) CreateTask(ctx context.Context, task unicap.Task) (*unicap.Resu
 		return &unicap.Result{
 			TaskID:   response.TaskID.String(),
 			Status:   unicap.TaskStatusReady,
-			Solution: decodeSolution(response.Solution),
+			Solution: c.solution(response.Solution),
 		}, nil
 	}
 
@@ -220,7 +236,7 @@ func (c *Client) GetTaskResult(ctx context.Context, taskID string) (*unicap.Resu
 	}
 
 	if status == unicap.TaskStatusReady {
-		result.Solution = decodeSolution(response.Solution)
+		result.Solution = c.solution(response.Solution)
 	}
 
 	return result, nil
@@ -286,6 +302,18 @@ func (c *Client) taskPayload(task unicap.Task) (any, error) {
 	}
 
 	return mapper(task)
+}
+
+// solution decodes a provider solution payload and applies the provider's
+// refinement, if any.
+func (c *Client) solution(raw json.RawMessage) unicap.Solution {
+	solution := decodeSolution(raw)
+
+	if c.config.RefineSolution != nil {
+		c.config.RefineSolution(raw, &solution)
+	}
+
+	return solution
 }
 
 // taskStatus converts a provider status string. A "failed" status without
