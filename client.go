@@ -59,15 +59,18 @@ func (c *Client) Provider() Provider {
 
 // Solve submits task and waits until its solution is ready, the context is
 // canceled, or polling times out. With WithSolveRetries it resubmits the task
-// after retryable failures.
+// after failures that leave no task running, waiting the polling interval
+// between attempts.
 func (c *Client) Solve(ctx context.Context, task Task) (*Result, error) {
+	delay := c.polling.Interval
+
 	for attempt := 0; ; attempt++ {
-		result, err := c.solveOnce(ctx, task)
+		result, resubmit, err := c.solveOnce(ctx, task)
 		if err == nil {
 			return result, nil
 		}
 
-		if attempt >= c.solveRetries || !IsRetryable(err) || ctx.Err() != nil {
+		if attempt >= c.solveRetries || !resubmit {
 			return nil, err
 		}
 
@@ -75,8 +78,16 @@ func (c *Client) Solve(ctx context.Context, task Task) (*Result, error) {
 			slog.String("provider", c.provider.Name()),
 			slog.String("task_type", string(task.Type())),
 			slog.Int("attempt", attempt+1),
+			slog.Duration("delay", delay),
 			slog.Any("error", err),
 		)
+
+		// A canceled pause ends the retries with the failure that caused them.
+		if pause(ctx, delay) != nil {
+			return nil, err
+		}
+
+		delay = c.polling.next(delay)
 	}
 }
 
@@ -177,25 +188,28 @@ func (c *Client) Supports(taskType TaskType) bool {
 	return supporter.Supports(taskType)
 }
 
-// solveOnce submits task and waits for its solution.
-func (c *Client) solveOnce(ctx context.Context, task Task) (*Result, error) {
+// solveOnce submits task and waits for its solution. On failure, resubmit
+// reports whether a fresh task may be submitted because none is left running:
+// creation failed with a retryable error, or the provider declared the task
+// unsolvable. Any other failure while waiting may leave the task running.
+func (c *Client) solveOnce(ctx context.Context, task Task) (result *Result, resubmit bool, err error) {
 	created, err := c.CreateTask(ctx, task)
 	if err != nil {
-		return nil, err
+		return nil, IsRetryable(err), err
 	}
 
 	if created.Ready() {
-		return created, nil
+		return created, false, nil
 	}
 
-	result, err := c.wait(ctx, created.TaskID)
+	result, err = c.wait(ctx, created.TaskID)
 	if err != nil {
-		return nil, err
+		return nil, errors.Is(err, ErrUnsolvable), err
 	}
 
 	result.Task = task
 
-	return result, nil
+	return result, false, nil
 }
 
 // recommendedPolling returns the provider's polling recommendation, or the

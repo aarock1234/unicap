@@ -80,6 +80,14 @@ func sleep(ctx context.Context, timer *time.Timer) error {
 	}
 }
 
+// pause blocks for delay or until ctx is done.
+func pause(ctx context.Context, delay time.Duration) error {
+	timer := time.NewTimer(delay)
+	defer timer.Stop()
+
+	return sleep(ctx, timer)
+}
+
 // contextError translates a deadline into ErrTimeout while keeping the
 // context error inspectable.
 func contextError(ctx context.Context) error {

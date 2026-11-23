@@ -140,7 +140,7 @@ if providerErr, ok := errors.AsType[*unicap.Error](err); ok {
 }
 ```
 
-To have `Solve` resubmit after retryable failures, use `unicap.WithSolveRetries(n)`. Providers may bill for every attempt.
+To have `Solve` resubmit after retryable failures, use `unicap.WithSolveRetries(n)`. Providers may bill for every attempt. Attempts are spaced by the polling interval.
 
 ### Balance and reports
 

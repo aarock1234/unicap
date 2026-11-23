@@ -27,8 +27,9 @@ func WithPolling(polling Polling) Option {
 }
 
 // WithSolveRetries makes Solve submit a fresh task up to retries more times
-// when an attempt fails with a retryable error such as ErrUnsolvable or
-// ErrUnavailable. Each attempt may be billed by the provider. Default: 0.
+// when creating the task fails with a retryable error or the provider reports
+// the captcha unsolvable. Attempts are spaced by the polling interval, and
+// each attempt may be billed by the provider. Default: 0.
 func WithSolveRetries(retries int) Option {
 	return func(c *Client) {
 		c.solveRetries = retries
