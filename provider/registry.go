@@ -17,6 +17,7 @@ import (
 	"github.com/aarock1234/unicap/v3/provider/capsolver"
 	"github.com/aarock1234/unicap/v3/provider/easycaptcha"
 	"github.com/aarock1234/unicap/v3/provider/nonecap"
+	"github.com/aarock1234/unicap/v3/provider/nopecha"
 	"github.com/aarock1234/unicap/v3/provider/noptcha"
 	"github.com/aarock1234/unicap/v3/provider/twocaptcha"
 	"github.com/aarock1234/unicap/v3/provider/yescaptcha"
@@ -96,6 +97,7 @@ func NewRegistry() *Registry {
 	r.Register(noptcha.Name, newNoptcha)
 	r.Register(nonecap.Name, newNoneCap)
 	r.Register(easycaptcha.Name, newEasyCaptcha)
+	r.Register(nopecha.Name, newNopeCHA)
 
 	return r
 }
@@ -303,6 +305,24 @@ func newEasyCaptcha(apiKey string, settings Settings) (unicap.Provider, error) {
 		easycaptcha.WithHTTPClient(settings.HTTPClient),
 		easycaptcha.WithLogger(settings.Logger),
 		easycaptcha.WithBaseURL(settings.BaseURL),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
+}
+
+// newNopeCHA creates a NopeCHA provider. NopeCHA has no callback option.
+func newNopeCHA(apiKey string, settings Settings) (unicap.Provider, error) {
+	if err := rejectCallback(nopecha.Name, settings); err != nil {
+		return nil, err
+	}
+
+	client, err := nopecha.New(apiKey,
+		nopecha.WithHTTPClient(settings.HTTPClient),
+		nopecha.WithLogger(settings.Logger),
+		nopecha.WithBaseURL(settings.BaseURL),
 	)
 	if err != nil {
 		return nil, err
