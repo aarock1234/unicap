@@ -75,7 +75,7 @@ if !created.Ready() {
 
 `client.GetTaskResult(ctx, taskID)` checks the task once without waiting.
 
-Results from `Wait` and `GetTaskResult` carry no `Task`. Set `result.Task = task` before passing one to `client.Report`; CapSolver and Anti-Captcha need the original task.
+Results from `Wait` and `GetTaskResult` carry no `Task`. Set `result.Task = task` before passing one to `client.Report`; CapSolver, Anti-Captcha, and CapMonster Cloud need the original task.
 
 ### Cookies, user agents, and family-specific solutions
 
