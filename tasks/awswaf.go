@@ -10,7 +10,8 @@ import (
 //
 // Providers differ in which inputs they need: CapSolver can work from
 // WebsiteURL alone, while 2Captcha and Anti-Captcha need Key, IV, and
-// Context from the page's window.gokuProps.
+// Context from the page's window.gokuProps. Anti-Captcha alternatively
+// solves widget integrations from JSAPIScript and APIKey.
 type AWSWAFTask struct {
 	// WebsiteURL is the protected page.
 	WebsiteURL string
@@ -37,7 +38,8 @@ type AWSWAFTask struct {
 	// ProblemURL is the URL of the captcha "problem" endpoint.
 	ProblemURL string
 
-	// APIKey is the integration API key some sites expose.
+	// APIKey is the integration API key some sites expose: the key passed to
+	// AwsWafCaptcha.renderCaptcha.
 	APIKey string
 
 	// ExistingToken is a previous aws-waf-token to refresh.

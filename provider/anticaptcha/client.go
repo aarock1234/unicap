@@ -89,12 +89,13 @@ func New(apiKey string, opts ...Option) (*Client, error) {
 	}, nil
 }
 
-// polling follows Anti-Captcha's guidance: wait about 5 seconds, then poll
-// every few seconds. Finished results are kept for only 60 seconds.
+// polling follows Anti-Captcha's official Go client, because the API
+// documentation gives no polling guidance: wait 5 seconds before the first
+// check and between checks. Finished results are kept for only 60 seconds.
 var polling = unicap.Polling{
 	InitialDelay:       5 * time.Second,
-	Interval:           3 * time.Second,
-	MaxInterval:        3 * time.Second,
+	Interval:           5 * time.Second,
+	MaxInterval:        5 * time.Second,
 	Multiplier:         1,
 	Timeout:            5 * time.Minute,
 	MaxTransientErrors: 3,
@@ -105,6 +106,7 @@ var errorRules = solverapi.ErrorRules{
 	"ERROR_KEY_DOES_NOT_EXIST":              unicap.ErrInvalidAPIKey,
 	"ERROR_ZERO_BALANCE":                    unicap.ErrInsufficientFunds,
 	"ERROR_NO_SLOT_AVAILABLE":               unicap.ErrUnavailable,
+	"ERROR_ALL_WORKERS_FILTERED":            unicap.ErrUnavailable,
 	"ERROR_NO_SUCH_CAPCHA_ID":               unicap.ErrTaskNotFound,
 	"ERROR_ZERO_CAPTCHA_FILESIZE":           unicap.ErrInvalidTask,
 	"ERROR_TOO_BIG_CAPTCHA_FILESIZE":        unicap.ErrInvalidTask,
@@ -119,6 +121,7 @@ var errorRules = solverapi.ErrorRules{
 	"ERROR_VISIBLE_RECAPTCHA":               unicap.ErrInvalidTask,
 	"ERROR_TEMPLATE_NOT_FOUND":              unicap.ErrInvalidTask,
 	"ERROR_TASK_NOT_SUPPORTED":              unicap.ErrUnsupportedTask,
+	"ERROR_NO_SUCH_METHOD":                  unicap.ErrUnsupportedOperation,
 	"ERROR_CAPTCHA_UNSOLVABLE":              unicap.ErrUnsolvable,
 	"ERROR_BAD_DUPLICATES":                  unicap.ErrUnsolvable,
 	"ERROR_RECAPTCHA_TIMEOUT":               unicap.ErrUnsolvable,

@@ -1,8 +1,6 @@
 package anticaptcha
 
 import (
-	"fmt"
-
 	"github.com/aarock1234/unicap/v3"
 	"github.com/aarock1234/unicap/v3/internal/solverapi"
 )
@@ -22,12 +20,15 @@ func proxyFields(proxy *unicap.Proxy) (solverapi.ProxyFields, error) {
 	return fields, nil
 }
 
-// requireUserAgentWithProxy reports an error when a proxy is set without the
-// User-Agent Anti-Captcha needs to emulate the browser.
-func requireUserAgentWithProxy(proxy *unicap.Proxy, userAgent string) error {
-	if proxy == nil || userAgent != "" {
-		return nil
-	}
-
-	return fmt.Errorf("UserAgent is required with a proxy: %w", unicap.ErrInvalidTask)
+// userAgentWithProxyOnly enforces Anti-Captcha's User-Agent rule: proxy task
+// types require one, and proxyless task types do not accept one.
+func userAgentWithProxyOnly(proxy *unicap.Proxy, userAgent string) error {
+	return solverapi.Check(
+		solverapi.Unsupported(
+			solverapi.Setting("UserAgent without Proxy", proxy == nil && userAgent != ""),
+		),
+		solverapi.Required(
+			solverapi.Setting("UserAgent with a Proxy", proxy == nil || userAgent != ""),
+		),
+	)
 }

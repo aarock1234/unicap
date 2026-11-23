@@ -26,7 +26,8 @@ type AntiGateTask struct {
 	DomainsOfInterest []string
 
 	// Proxy is the optional proxy the worker loads the page through.
-	// Anti-Captcha accepts HTTPS proxies only for AntiGate.
+	// Anti-Captcha accepts HTTP and HTTPS proxies, by IP address, for
+	// AntiGate.
 	Proxy *unicap.Proxy
 }
 

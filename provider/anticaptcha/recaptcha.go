@@ -40,10 +40,9 @@ func mapReCaptchaV2(task *tasks.ReCaptchaV2Task) (reCaptchaV2Task, error) {
 			solverapi.Setting("PageAction", task.PageAction != ""),
 			solverapi.Setting("APIDomain", task.APIDomain != ""),
 			solverapi.Setting("IsSession", task.IsSession),
-			solverapi.Setting("UserAgent without Proxy", task.Proxy == nil && task.UserAgent != ""),
 			solverapi.Setting("Cookies without Proxy", task.Proxy == nil && task.Cookies != ""),
 		),
-		requireUserAgentWithProxy(task.Proxy, task.UserAgent),
+		userAgentWithProxyOnly(task.Proxy, task.UserAgent),
 	); err != nil {
 		return reCaptchaV2Task{}, err
 	}
@@ -75,10 +74,9 @@ func mapReCaptchaV2Enterprise(task *tasks.ReCaptchaV2EnterpriseTask) (reCaptchaV
 		solverapi.Unsupported(
 			solverapi.Setting("PageAction", task.PageAction != ""),
 			solverapi.Setting("IsSession", task.IsSession),
-			solverapi.Setting("UserAgent without Proxy", task.Proxy == nil && task.UserAgent != ""),
 			solverapi.Setting("Cookies without Proxy", task.Proxy == nil && task.Cookies != ""),
 		),
-		requireUserAgentWithProxy(task.Proxy, task.UserAgent),
+		userAgentWithProxyOnly(task.Proxy, task.UserAgent),
 	); err != nil {
 		return reCaptchaV2Task{}, err
 	}

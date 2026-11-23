@@ -111,7 +111,7 @@ func mapAntiGate(task *tasks.AntiGateTask) (antiGateTask, error) {
 	}
 
 	if task.Proxy != nil && task.Proxy.Type != unicap.ProxyTypeHTTP && task.Proxy.Type != unicap.ProxyTypeHTTPS {
-		return antiGateTask{}, fmt.Errorf("Proxy.Type %q, AntiGate accepts https only: %w", task.Proxy.Type, unicap.ErrUnsupportedOption)
+		return antiGateTask{}, fmt.Errorf("Proxy.Type %q, AntiGate accepts http and https proxies only: %w", task.Proxy.Type, unicap.ErrUnsupportedOption)
 	}
 
 	variables := task.Variables

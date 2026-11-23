@@ -38,24 +38,28 @@ type geeTestTask struct {
 }
 
 type geeTestParams struct {
-	CaptchaID string `json:"captcha_id"`
-	RiskType  string `json:"risk_type,omitempty"`
+	RiskType string `json:"riskType"`
 }
 
 type amazonTask struct {
 	Type            string `json:"type"`
 	WebsiteURL      string `json:"websiteURL"`
 	WebsiteKey      string `json:"websiteKey"`
-	IV              string `json:"iv"`
-	Context         string `json:"context"`
+	WAFType         string `json:"wafType,omitempty"`
+	IV              string `json:"iv,omitempty"`
+	Context         string `json:"context,omitempty"`
 	ChallengeScript string `json:"challengeScript,omitempty"`
 	CaptchaScript   string `json:"captchaScript,omitempty"`
 	JSAPIScript     string `json:"jsapiScript,omitempty"`
 	solverapi.ProxyFields
 }
 
+// wafTypeWidget is the wafType of AWS WAF captchas rendered through the
+// JavaScript API instead of the page's window.gokuProps.
+const wafTypeWidget = "widget"
+
 func mapFunCaptcha(task *tasks.FunCaptchaTask) (funCaptchaTask, error) {
-	if err := requireUserAgentWithProxy(task.Proxy, task.UserAgent); err != nil {
+	if err := userAgentWithProxyOnly(task.Proxy, task.UserAgent); err != nil {
 		return funCaptchaTask{}, err
 	}
 
@@ -103,7 +107,7 @@ func mapTurnstile(task *tasks.TurnstileTask) (turnstileTask, error) {
 }
 
 func mapGeeTest(task *tasks.GeeTestTask) (geeTestTask, error) {
-	if err := requireUserAgentWithProxy(task.Proxy, task.UserAgent); err != nil {
+	if err := userAgentWithProxyOnly(task.Proxy, task.UserAgent); err != nil {
 		return geeTestTask{}, err
 	}
 
@@ -129,8 +133,10 @@ func mapGeeTest(task *tasks.GeeTestTask) (geeTestTask, error) {
 	}, nil
 }
 
+// mapGeeTestV4 sends initParameters only when the task names a risk type,
+// its single documented key.
 func mapGeeTestV4(task *tasks.GeeTestV4Task) (geeTestTask, error) {
-	if err := requireUserAgentWithProxy(task.Proxy, task.UserAgent); err != nil {
+	if err := userAgentWithProxyOnly(task.Proxy, task.UserAgent); err != nil {
 		return geeTestTask{}, err
 	}
 
@@ -144,22 +150,55 @@ func mapGeeTestV4(task *tasks.GeeTestV4Task) (geeTestTask, error) {
 		return geeTestTask{}, err
 	}
 
-	return geeTestTask{
-		Type:       taskType,
-		WebsiteURL: task.WebsiteURL,
-		GT:         task.CaptchaID,
-		Version:    4,
-		InitParameters: &geeTestParams{
-			CaptchaID: task.CaptchaID,
-			RiskType:  task.RiskType,
-		},
+	wire := geeTestTask{
+		Type:                      taskType,
+		WebsiteURL:                task.WebsiteURL,
+		GT:                        task.CaptchaID,
+		Version:                   4,
 		GeetestAPIServerSubdomain: task.APIServerSubdomain,
 		UserAgent:                 task.UserAgent,
 		ProxyFields:               proxy,
-	}, nil
+	}
+
+	if task.RiskType != "" {
+		wire.InitParameters = &geeTestParams{
+			RiskType: task.RiskType,
+		}
+	}
+
+	return wire, nil
 }
 
+// mapAWSWAF solves a widget integration when the task names its jsapi.js
+// script, and the page's gokuProps challenge otherwise.
 func mapAWSWAF(task *tasks.AWSWAFTask) (amazonTask, error) {
+	mapMode := mapAWSWAFGokuProps
+	if task.JSAPIScript != "" {
+		mapMode = mapAWSWAFWidget
+	}
+
+	wire, err := mapMode(task)
+	if err != nil {
+		return amazonTask{}, err
+	}
+
+	wire.Type, err = variant("AmazonTask").For(task.Proxy)
+	if err != nil {
+		return amazonTask{}, err
+	}
+
+	wire.ProxyFields, err = proxyFields(task.Proxy)
+	if err != nil {
+		return amazonTask{}, err
+	}
+
+	return wire, nil
+}
+
+// mapAWSWAFGokuProps maps the fields of gokuProps mode, which solves the
+// challenge described by the page's window.gokuProps. The caller fills in
+// Type and ProxyFields.
+func mapAWSWAFGokuProps(task *tasks.AWSWAFTask) (amazonTask, error) {
 	if err := solverapi.Check(
 		solverapi.Required(
 			solverapi.Setting("Key", task.Key != ""),
@@ -175,25 +214,41 @@ func mapAWSWAF(task *tasks.AWSWAFTask) (amazonTask, error) {
 		return amazonTask{}, err
 	}
 
-	taskType, err := variant("AmazonTask").For(task.Proxy)
-	if err != nil {
-		return amazonTask{}, err
-	}
-
-	proxy, err := proxyFields(task.Proxy)
-	if err != nil {
-		return amazonTask{}, err
-	}
-
 	return amazonTask{
-		Type:            taskType,
 		WebsiteURL:      task.WebsiteURL,
 		WebsiteKey:      task.Key,
 		IV:              task.IV,
 		Context:         task.Context,
 		ChallengeScript: task.ChallengeScript,
 		CaptchaScript:   task.CaptchaScript,
-		JSAPIScript:     task.JSAPIScript,
-		ProxyFields:     proxy,
+	}, nil
+}
+
+// mapAWSWAFWidget maps the fields of widget mode, which solves a captcha
+// rendered by jsapi.js with the key passed to AwsWafCaptcha.renderCaptcha.
+// The caller fills in Type and ProxyFields.
+func mapAWSWAFWidget(task *tasks.AWSWAFTask) (amazonTask, error) {
+	if err := solverapi.Check(
+		solverapi.Required(
+			solverapi.Setting("APIKey", task.APIKey != ""),
+		),
+		solverapi.Unsupported(
+			solverapi.Setting("Key", task.Key != ""),
+			solverapi.Setting("IV", task.IV != ""),
+			solverapi.Setting("Context", task.Context != ""),
+			solverapi.Setting("ChallengeScript", task.ChallengeScript != ""),
+			solverapi.Setting("CaptchaScript", task.CaptchaScript != ""),
+			solverapi.Setting("ProblemURL", task.ProblemURL != ""),
+			solverapi.Setting("ExistingToken", task.ExistingToken != ""),
+		),
+	); err != nil {
+		return amazonTask{}, err
+	}
+
+	return amazonTask{
+		WebsiteURL:  task.WebsiteURL,
+		WebsiteKey:  task.APIKey,
+		WAFType:     wafTypeWidget,
+		JSAPIScript: task.JSAPIScript,
 	}, nil
 }
