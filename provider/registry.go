@@ -15,6 +15,7 @@ import (
 	"github.com/aarock1234/unicap/v3/provider/capmonster"
 	"github.com/aarock1234/unicap/v3/provider/capshot"
 	"github.com/aarock1234/unicap/v3/provider/capsolver"
+	"github.com/aarock1234/unicap/v3/provider/nonecap"
 	"github.com/aarock1234/unicap/v3/provider/noptcha"
 	"github.com/aarock1234/unicap/v3/provider/twocaptcha"
 	"github.com/aarock1234/unicap/v3/provider/yescaptcha"
@@ -92,6 +93,7 @@ func NewRegistry() *Registry {
 	r.Register(capmonster.Name, newCapMonster)
 	r.Register(capshot.Name, newCapshot)
 	r.Register(noptcha.Name, newNoptcha)
+	r.Register(nonecap.Name, newNoneCap)
 
 	return r
 }
@@ -262,6 +264,24 @@ func newNoptcha(apiKey string, settings Settings) (unicap.Provider, error) {
 		noptcha.WithHTTPClient(settings.HTTPClient),
 		noptcha.WithLogger(settings.Logger),
 		noptcha.WithBaseURL(settings.BaseURL),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
+}
+
+// newNoneCap creates a NoneCap provider. NoneCap has no callback option.
+func newNoneCap(apiKey string, settings Settings) (unicap.Provider, error) {
+	if err := rejectCallback(nonecap.Name, settings); err != nil {
+		return nil, err
+	}
+
+	client, err := nonecap.New(apiKey,
+		nonecap.WithHTTPClient(settings.HTTPClient),
+		nonecap.WithLogger(settings.Logger),
+		nonecap.WithBaseURL(settings.BaseURL),
 	)
 	if err != nil {
 		return nil, err
