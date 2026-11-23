@@ -57,11 +57,10 @@ func (f solutionFields) fill(solution *unicap.Solution) {
 	solution.Indexes = f.indexes()
 	solution.Angle = f.angle()
 
-	// CapSolver returns AWS WAF tokens as a bare "cookie" value.
+	// CapSolver returns AWS WAF tokens as a bare "cookie" value, so a
+	// "cookie" string that does not parse as a cookie is used as the token.
 	if solution.Token == "" && len(solution.Cookies) == 0 {
-		if cookie := f.firstString("cookie"); cookie != "" && !strings.Contains(cookie, "=") {
-			solution.Token = cookie
-		}
+		solution.Token = f.firstString("cookie")
 	}
 }
 
@@ -92,7 +91,7 @@ func (f solutionFields) firstString(names ...string) string {
 func (f solutionFields) cookies() []*http.Cookie {
 	var cookies []*http.Cookie
 
-	if text := f.firstString("cookie"); strings.Contains(text, "=") {
+	if text := f.firstString("cookie"); text != "" {
 		cookies = append(cookies, parseCookieString(text)...)
 	}
 
@@ -125,29 +124,70 @@ type namedCookie struct {
 	Value string `json:"value"`
 }
 
+// setCookieAttributes are the lowercase attribute names that mark a cookie
+// string as a Set-Cookie header value rather than a Cookie header value.
+var setCookieAttributes = []string{
+	"max-age",
+	"path",
+	"expires",
+	"domain",
+	"secure",
+	"httponly",
+	"samesite",
+}
+
 // parseCookieString parses either a Set-Cookie header value, such as
-// DataDome's "datadome=...; Max-Age=...; Path=/", or a Cookie header value.
+// DataDome's "datadome=...; Max-Age=...; Path=/", into its single cookie, or
+// a Cookie header value into every pair that is a valid cookie.
 func parseCookieString(text string) []*http.Cookie {
-	lower := strings.ToLower(text)
-	isSetCookie := strings.Contains(lower, "max-age=") ||
-		strings.Contains(lower, "path=") ||
-		strings.Contains(lower, "expires=") ||
-		strings.Contains(lower, "domain=")
+	if !isSetCookie(text) {
+		return parseCookieHeader(text)
+	}
 
-	if isSetCookie {
-		cookie, err := http.ParseSetCookie(text)
-		if err != nil {
-			return nil
-		}
+	cookie, err := http.ParseSetCookie(text)
+	if err != nil {
+		return nil
+	}
 
-		return []*http.Cookie{
-			cookie,
+	return []*http.Cookie{
+		cookie,
+	}
+}
+
+// isSetCookie reports whether a Set-Cookie attribute follows the first pair
+// of text. Attribute names inside a cookie name or value do not count.
+func isSetCookie(text string) bool {
+	_, attributes, _ := strings.Cut(text, ";")
+
+	for attribute := range strings.SplitSeq(attributes, ";") {
+		name, _, _ := strings.Cut(attribute, "=")
+		name = strings.ToLower(strings.TrimSpace(name))
+
+		if slices.Contains(setCookieAttributes, name) {
+			return true
 		}
 	}
 
-	cookies, err := http.ParseCookie(text)
-	if err != nil {
-		return nil
+	return false
+}
+
+// parseCookieHeader parses a Cookie header value pair by pair, skipping the
+// pairs that are not valid cookies instead of rejecting the whole header.
+func parseCookieHeader(text string) []*http.Cookie {
+	var cookies []*http.Cookie
+
+	for pair := range strings.SplitSeq(text, ";") {
+		pair = strings.TrimSpace(pair)
+		if pair == "" {
+			continue
+		}
+
+		parsed, err := http.ParseCookie(pair)
+		if err != nil {
+			continue
+		}
+
+		cookies = append(cookies, parsed...)
 	}
 
 	return cookies
