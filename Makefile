@@ -11,7 +11,7 @@ GOLANGCI_LINT := go run github.com/golangci/golangci-lint/v2/cmd/golangci-lint@$
 help: ## Show available targets
 	@awk 'BEGIN { FS = ":.*## " } /^[a-zA-Z_-]+:.*## / { printf "  %-14s %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
-.PHONY: build vet fix format lint test example
+.PHONY: build vet fix format lint test readme example
 
 build: ## Compile every package
 	go build ./...
@@ -30,6 +30,9 @@ lint: ## Run static analysis with golangci-lint
 
 test: ## Run tests with the race detector
 	go test -race ./...
+
+readme: ## Regenerate the README support matrix and task count
+	go run ./internal/cmd/readme
 
 example: ## Run the solve example (make example provider=capsolver)
 	go run ./examples/solve -provider $(or $(provider),capsolver)

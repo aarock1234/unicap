@@ -38,7 +38,7 @@ Requires Go 1.27 or newer. If you're upgrading from v1 or v2, see [MIGRATION.md]
 
 ## Features
 
-- **Tasks**: 51 typed captcha tasks that work across providers, plus `RawTask` for anything unicap doesn't model yet
+- **Tasks**: <!-- task-count:start -->51<!-- task-count:end --> typed captcha tasks that work across providers, plus `RawTask` for anything unicap doesn't model yet
 - **Strict**: options a provider can't honour return `ErrUnsupportedOption` instead of being silently dropped
 - **Results**: task ID, cost, and timing, with typed solutions for tokens, cookies, user agents, and coordinates
 - **Errors**: provider codes map to sentinels for `errors.Is`, and `unicap.IsRetryable` tells you when to resubmit
@@ -186,6 +186,7 @@ The Anti-Captcha client also has `PushVariable` for AntiGate templates.
 
 ## Supported captchas
 
+<!-- support-matrix:start -->
 | Task                                     | CapSolver | 2Captcha | Anti-Captcha |
 | ---------------------------------------- | :-------: | :------: | :----------: |
 | `ReCaptchaV2Task`                        | ✓         | ✓        | ✓            |
@@ -218,6 +219,7 @@ The Anti-Captcha client also has `PushVariable` for AntiGate templates.
 | `DrawAroundTask`, `BoundingBoxTask`, `DragAndDropTask` | – | ✓ | – |
 | `TemuTask`, `VKCaptchaImageTask`, `YandexImageTask`, `YandexPuzzleTask` | – | ✓ | – |
 | `RawTask` (passthrough)                  | ✓         | ✓        | ✓            |
+<!-- support-matrix:end -->
 
 ¹ All three providers have withdrawn hCaptcha support, so the built-in providers reject it. The task type remains available for custom providers.
 

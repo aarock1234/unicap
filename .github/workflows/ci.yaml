@@ -32,5 +32,8 @@ jobs:
       - name: Build
         run: make build
 
+      - name: README is up to date
+        run: make readme && git diff --exit-code README.md
+
       - name: Test
         run: make test
