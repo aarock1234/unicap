@@ -12,6 +12,7 @@ import (
 
 	"github.com/aarock1234/unicap/v3"
 	"github.com/aarock1234/unicap/v3/provider/anticaptcha"
+	"github.com/aarock1234/unicap/v3/provider/capmonster"
 	"github.com/aarock1234/unicap/v3/provider/capsolver"
 	"github.com/aarock1234/unicap/v3/provider/twocaptcha"
 	"github.com/aarock1234/unicap/v3/provider/yescaptcha"
@@ -86,6 +87,7 @@ func NewRegistry() *Registry {
 	r.Register(twocaptcha.Name, newTwoCaptcha)
 	r.Register(anticaptcha.Name, newAntiCaptcha)
 	r.Register(yescaptcha.Name, newYesCaptcha)
+	r.Register(capmonster.Name, newCapMonster)
 
 	return r
 }
@@ -204,6 +206,21 @@ func newYesCaptcha(apiKey string, settings Settings) (unicap.Provider, error) {
 		yescaptcha.WithHTTPClient(settings.HTTPClient),
 		yescaptcha.WithLogger(settings.Logger),
 		yescaptcha.WithBaseURL(settings.BaseURL),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
+}
+
+// newCapMonster creates a CapMonster Cloud provider.
+func newCapMonster(apiKey string, settings Settings) (unicap.Provider, error) {
+	client, err := capmonster.New(apiKey,
+		capmonster.WithHTTPClient(settings.HTTPClient),
+		capmonster.WithLogger(settings.Logger),
+		capmonster.WithBaseURL(settings.BaseURL),
+		capmonster.WithCallbackURL(settings.CallbackURL),
 	)
 	if err != nil {
 		return nil, err
