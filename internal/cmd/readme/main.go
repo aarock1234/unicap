@@ -21,6 +21,7 @@ import (
 	"github.com/aarock1234/unicap/v3/provider/anticaptcha"
 	"github.com/aarock1234/unicap/v3/provider/capsolver"
 	"github.com/aarock1234/unicap/v3/provider/twocaptcha"
+	"github.com/aarock1234/unicap/v3/provider/yescaptcha"
 	"github.com/aarock1234/unicap/v3/tasks"
 )
 
@@ -143,6 +144,11 @@ func newColumns() ([]column, error) {
 		return nil, fmt.Errorf("creating anti-captcha provider: %w", err)
 	}
 
+	yesCaptcha, err := yescaptcha.New(placeholderKey)
+	if err != nil {
+		return nil, fmt.Errorf("creating yescaptcha provider: %w", err)
+	}
+
 	return []column{
 		{
 			title:    "CapSolver",
@@ -155,6 +161,10 @@ func newColumns() ([]column, error) {
 		{
 			title:    "Anti-Captcha",
 			supports: antiCaptcha.Supports,
+		},
+		{
+			title:    "YesCaptcha",
+			supports: yesCaptcha.Supports,
 		},
 	}, nil
 }

@@ -187,60 +187,60 @@ The Anti-Captcha client also has `PushVariable` for AntiGate templates.
 ## Supported captchas
 
 <!-- support-matrix:start -->
-| Task | CapSolver | 2Captcha | Anti-Captcha |
-| --- | :---: | :---: | :---: |
-| `ReCaptchaV2Task` | ✓ | ✓ | ✓ |
-| `ReCaptchaV2EnterpriseTask` | ✓ | ✓ | ✓ |
-| `ReCaptchaV3Task` | ✓ | ✓ | ✓ |
-| `ReCaptchaV3EnterpriseTask` | ✓ | ✓ | ✓ |
-| `ReCaptchaClassificationTask` | ✓ | – | – |
-| `HCaptchaTask`¹ | – | – | – |
-| `FunCaptchaTask` | – | ✓ | ✓ |
-| `TurnstileTask` | ✓ | ✓ | ✓ |
-| `CloudflareChallengeTask` | ✓ | – | – |
-| `DataDomeTask` | ✓ | ✓ | – |
-| `GeeTestTask` | ✓ | ✓ | ✓ |
-| `GeeTestV4Task` | ✓ | ✓ | ✓ |
-| `AWSWAFTask` | ✓ | ✓ | ✓ |
-| `AWSWAFClassificationTask` | ✓ | – | – |
-| `MTCaptchaTask` | ✓ | ✓ | – |
-| `FriendlyCaptchaTask` | – | ✓ | ✓ |
-| `LeminTask` | – | ✓ | – |
-| `CutCaptchaTask` | – | ✓ | – |
-| `ProsopoTask` | – | ✓ | ✓ |
-| `AltchaTask` | – | ✓ | ✓ |
-| `CapyTask` | – | ✓ | – |
-| `KeyCaptchaTask` | – | ✓ | – |
-| `CyberSiAraTask` | – | ✓ | – |
-| `AtbCaptchaTask` | – | ✓ | – |
-| `TencentTask` | – | ✓ | – |
-| `CaptchaFoxTask` | – | ✓ | – |
-| `YandexSmartCaptchaTask` | – | ✓ | – |
-| `BotDeflectorTask` | ✓ | – | – |
-| `VKCaptchaTask` | – | ✓ | – |
-| `YidunTask` | – | ✓ | – |
-| `BinanceTask` | – | ✓ | – |
-| `HuntTask` | – | ✓ | – |
-| `TSPDTask` | – | ✓ | – |
-| `BasiliskTask` | – | ✓ | – |
-| `ImpervaTask` | – | ✓ | – |
-| `AlibabaTask` | – | ✓ | – |
-| `AntiGateTask` | – | – | ✓ |
-| `ImageToTextTask` | ✓ | ✓ | ✓ |
-| `TextCaptchaTask` | – | ✓ | – |
-| `AudioTask` | – | ✓ | – |
-| `CoordinatesTask` | – | ✓ | ✓ |
-| `GridTask` | – | ✓ | – |
-| `RotateTask` | – | ✓ | – |
-| `DrawAroundTask` | – | ✓ | – |
-| `BoundingBoxTask` | – | ✓ | – |
-| `DragAndDropTask` | – | ✓ | – |
-| `TemuTask` | – | ✓ | – |
-| `VKCaptchaImageTask` | – | ✓ | – |
-| `YandexImageTask` | – | ✓ | – |
-| `YandexPuzzleTask` | – | ✓ | – |
-| `VisionEngineTask` | ✓ | – | – |
-| `RawTask` (passthrough) | ✓ | ✓ | ✓ |
+| Task | CapSolver | 2Captcha | Anti-Captcha | YesCaptcha |
+| --- | :---: | :---: | :---: | :---: |
+| `ReCaptchaV2Task` | ✓ | ✓ | ✓ | ✓ |
+| `ReCaptchaV2EnterpriseTask` | ✓ | ✓ | ✓ | ✓ |
+| `ReCaptchaV3Task` | ✓ | ✓ | ✓ | ✓ |
+| `ReCaptchaV3EnterpriseTask` | ✓ | ✓ | ✓ | ✓ |
+| `ReCaptchaClassificationTask` | ✓ | – | – | ✓ |
+| `HCaptchaTask` | – | – | – | ✓ |
+| `FunCaptchaTask` | – | ✓ | ✓ | – |
+| `TurnstileTask` | ✓ | ✓ | ✓ | ✓ |
+| `CloudflareChallengeTask` | ✓ | – | – | ✓ |
+| `DataDomeTask` | ✓ | ✓ | – | – |
+| `GeeTestTask` | ✓ | ✓ | ✓ | – |
+| `GeeTestV4Task` | ✓ | ✓ | ✓ | – |
+| `AWSWAFTask` | ✓ | ✓ | ✓ | – |
+| `AWSWAFClassificationTask` | ✓ | – | – | – |
+| `MTCaptchaTask` | ✓ | ✓ | – | – |
+| `FriendlyCaptchaTask` | – | ✓ | ✓ | – |
+| `LeminTask` | – | ✓ | – | – |
+| `CutCaptchaTask` | – | ✓ | – | – |
+| `ProsopoTask` | – | ✓ | ✓ | – |
+| `AltchaTask` | – | ✓ | ✓ | – |
+| `CapyTask` | – | ✓ | – | – |
+| `KeyCaptchaTask` | – | ✓ | – | – |
+| `CyberSiAraTask` | – | ✓ | – | – |
+| `AtbCaptchaTask` | – | ✓ | – | – |
+| `TencentTask` | – | ✓ | – | – |
+| `CaptchaFoxTask` | – | ✓ | – | – |
+| `YandexSmartCaptchaTask` | – | ✓ | – | – |
+| `BotDeflectorTask` | ✓ | – | – | – |
+| `VKCaptchaTask` | – | ✓ | – | – |
+| `YidunTask` | – | ✓ | – | – |
+| `BinanceTask` | – | ✓ | – | – |
+| `HuntTask` | – | ✓ | – | – |
+| `TSPDTask` | – | ✓ | – | – |
+| `BasiliskTask` | – | ✓ | – | – |
+| `ImpervaTask` | – | ✓ | – | – |
+| `AlibabaTask` | – | ✓ | – | – |
+| `AntiGateTask` | – | – | ✓ | – |
+| `ImageToTextTask` | ✓ | ✓ | ✓ | ✓ |
+| `TextCaptchaTask` | – | ✓ | – | – |
+| `AudioTask` | – | ✓ | – | – |
+| `CoordinatesTask` | – | ✓ | ✓ | – |
+| `GridTask` | – | ✓ | – | – |
+| `RotateTask` | – | ✓ | – | – |
+| `DrawAroundTask` | – | ✓ | – | – |
+| `BoundingBoxTask` | – | ✓ | – | – |
+| `DragAndDropTask` | – | ✓ | – | – |
+| `TemuTask` | – | ✓ | – | – |
+| `VKCaptchaImageTask` | – | ✓ | – | – |
+| `YandexImageTask` | – | ✓ | – | – |
+| `YandexPuzzleTask` | – | ✓ | – | – |
+| `VisionEngineTask` | ✓ | – | – | – |
+| `RawTask` (passthrough) | ✓ | ✓ | ✓ | ✓ |
 <!-- support-matrix:end -->
 
 ¹ All three providers have withdrawn hCaptcha support, so the built-in providers reject it. The task type remains available for custom providers.

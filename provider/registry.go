@@ -14,6 +14,7 @@ import (
 	"github.com/aarock1234/unicap/v3/provider/anticaptcha"
 	"github.com/aarock1234/unicap/v3/provider/capsolver"
 	"github.com/aarock1234/unicap/v3/provider/twocaptcha"
+	"github.com/aarock1234/unicap/v3/provider/yescaptcha"
 )
 
 // ErrUnknownProvider reports that no factory is registered for a provider
@@ -84,6 +85,7 @@ func NewRegistry() *Registry {
 	r.Register(capsolver.Name, newCapSolver)
 	r.Register(twocaptcha.Name, newTwoCaptcha)
 	r.Register(anticaptcha.Name, newAntiCaptcha)
+	r.Register(yescaptcha.Name, newYesCaptcha)
 
 	return r
 }
@@ -141,8 +143,6 @@ func (r *Registry) New(name, apiKey string, opts ...Option) (unicap.Provider, er
 
 // rejectCallback reports ErrUnsupportedOption when a callback URL is set for
 // a provider that has no callback option.
-//
-//nolint:unused // called by the provider factories added next.
 func rejectCallback(name string, settings Settings) error {
 	if settings.CallbackURL == "" {
 		return nil
@@ -185,6 +185,25 @@ func newAntiCaptcha(apiKey string, settings Settings) (unicap.Provider, error) {
 		anticaptcha.WithLogger(settings.Logger),
 		anticaptcha.WithBaseURL(settings.BaseURL),
 		anticaptcha.WithCallbackURL(settings.CallbackURL),
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	return client, nil
+}
+
+// newYesCaptcha creates a YesCaptcha provider. YesCaptcha has no callback
+// option.
+func newYesCaptcha(apiKey string, settings Settings) (unicap.Provider, error) {
+	if err := rejectCallback(yescaptcha.Name, settings); err != nil {
+		return nil, err
+	}
+
+	client, err := yescaptcha.New(apiKey,
+		yescaptcha.WithHTTPClient(settings.HTTPClient),
+		yescaptcha.WithLogger(settings.Logger),
+		yescaptcha.WithBaseURL(settings.BaseURL),
 	)
 	if err != nil {
 		return nil, err
