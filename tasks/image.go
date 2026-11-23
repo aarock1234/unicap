@@ -25,6 +25,21 @@ const (
 	NumericModeBoth NumericMode = 4
 )
 
+// Valid reports whether m is one of the declared numeric modes. The zero
+// value is NumericModeAny, so it is accepted.
+func (m NumericMode) Valid() bool {
+	switch m {
+	case NumericModeAny,
+		NumericModeNumbersOnly,
+		NumericModeLettersOnly,
+		NumericModeEither,
+		NumericModeBoth:
+		return true
+	default:
+		return false
+	}
+}
+
 // ImageToTextTask reads the text in a captcha image. The answer is in
 // unicap.Solution.Text.
 type ImageToTextTask struct {
@@ -75,10 +90,14 @@ func (t *ImageToTextTask) Type() unicap.TaskType {
 	return unicap.TaskTypeImageToText
 }
 
-// Validate reports a missing image.
+// Validate reports a missing image, an unknown numeric mode, and negative
+// lengths.
 func (t *ImageToTextTask) Validate() error {
 	return validate(
 		required("Body", t.Body),
+		knownValue("Numeric", t.Numeric.Valid()),
+		nonNegative("MinLength", t.MinLength),
+		nonNegative("MaxLength", t.MaxLength),
 	)
 }
 
@@ -138,6 +157,17 @@ const (
 	CoordinatesModeRectangles CoordinatesMode = "rectangles"
 )
 
+// Valid reports whether m is one of the declared coordinates modes. The
+// empty value is accepted and means points.
+func (m CoordinatesMode) Valid() bool {
+	switch m {
+	case "", CoordinatesModePoints, CoordinatesModeRectangles:
+		return true
+	default:
+		return false
+	}
+}
+
 // CoordinatesTask asks a worker to click points, or select rectangles, on an
 // image.
 type CoordinatesTask struct {
@@ -169,10 +199,14 @@ func (t *CoordinatesTask) Type() unicap.TaskType {
 	return unicap.TaskTypeCoordinates
 }
 
-// Validate reports a missing image.
+// Validate reports a missing image, an unknown mode, and negative click
+// counts.
 func (t *CoordinatesTask) Validate() error {
 	return validate(
 		required("Body", t.Body),
+		knownValue("Mode", t.Mode.Valid()),
+		nonNegative("MinClicks", t.MinClicks),
+		nonNegative("MaxClicks", t.MaxClicks),
 	)
 }
 
@@ -186,6 +220,17 @@ const (
 	// GridImageTypeFunCaptcha marks a FunCaptcha image grid.
 	GridImageTypeFunCaptcha GridImageType = "funcaptcha"
 )
+
+// Valid reports whether t is one of the declared grid image types. The empty
+// value is accepted and leaves the widget unspecified.
+func (t GridImageType) Valid() bool {
+	switch t {
+	case "", GridImageTypeReCaptcha, GridImageTypeFunCaptcha:
+		return true
+	default:
+		return false
+	}
+}
 
 // GridTask asks a worker to select the matching tiles of an image grid. The
 // selected tiles are in unicap.Solution.Indexes.
@@ -229,11 +274,17 @@ func (t *GridTask) Type() unicap.TaskType {
 	return unicap.TaskTypeGrid
 }
 
-// Validate reports a missing image or instruction.
+// Validate reports a missing image or instruction, an unknown image type,
+// and negative grid dimensions or click counts.
 func (t *GridTask) Validate() error {
 	return validate(
 		required("Body", t.Body),
 		requiredInstruction(t.Comment, t.ImgInstructions),
+		knownValue("ImageType", t.ImageType.Valid()),
+		nonNegative("Rows", t.Rows),
+		nonNegative("Columns", t.Columns),
+		nonNegative("MinClicks", t.MinClicks),
+		nonNegative("MaxClicks", t.MaxClicks),
 	)
 }
 

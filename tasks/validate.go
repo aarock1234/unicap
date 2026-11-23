@@ -63,6 +63,25 @@ func inRange(field string, value, low, high float64) error {
 	return fmt.Errorf("%s must be between %g and %g: %w", field, low, high, unicap.ErrInvalidTask)
 }
 
+// knownValue reports an error when an enum-like field holds an undeclared
+// value.
+func knownValue(field string, valid bool) error {
+	if valid {
+		return nil
+	}
+
+	return fmt.Errorf("%s has an unknown value: %w", field, unicap.ErrInvalidTask)
+}
+
+// nonNegative reports an error when a count field is below zero.
+func nonNegative(field string, value int) error {
+	if value >= 0 {
+		return nil
+	}
+
+	return fmt.Errorf("%s must not be negative: %w", field, unicap.ErrInvalidTask)
+}
+
 // optionalProxy validates a proxy when one is set.
 func optionalProxy(proxy *unicap.Proxy) error {
 	if proxy == nil {
